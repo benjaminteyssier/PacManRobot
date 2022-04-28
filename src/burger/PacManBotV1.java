@@ -249,52 +249,18 @@ public class PacManBotV1 extends Turtlebot {
 
             if(goal.getX()==x && goal.getY()==y)
                 return;
-            if (orientation == Orientation.up) {
-                if (ec[3] != null)
-                    moveForward();
-                else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
+
+            if(path.get(0)==Orientation.up){
+                if(ec[3] != null)
+                    if(orientation==Orientation.up)
+                        moveForward();
+                    else if(orientation==Orientation.down)
                         moveRight(1);
-                        actionr = "turn_right";
-                    }
-                }
-            } else if (orientation == Orientation.down) {
-                if (ec[2] != null)
-                    moveForward();
-                else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
+                    else if(orientation==Orientation.left)
                         moveRight(1);
-                        actionr = "turn_right";
-                    }
-                }
-            } else if (orientation == Orientation.right) {
-                if (ec[1] != null)
-                    moveForward();
-                else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
+                    else
                         moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
-                }
-            } else if (orientation == Orientation.left) {
-                if (ec[0] != null)
-                    moveForward();
-                else {
+                else{
                     //randomOrientation();
                     double d = Math.random();
                     if (d < 0.5) {
@@ -306,6 +272,76 @@ public class PacManBotV1 extends Turtlebot {
                     }
                 }
             }
+
+            else if(path.get(0)==Orientation.down){
+                if(ec[2] != null)
+                    if(orientation==Orientation.up)
+                        moveRight(1);
+                    else if(orientation==Orientation.down)
+                        moveForward();
+                    else if(orientation==Orientation.left)
+                        moveLeft(1);
+                    else
+                        moveRight(1);
+                else{
+                    //randomOrientation();
+                    double d = Math.random();
+                    if (d < 0.5) {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    } else {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    }
+                }
+            }
+
+            else if(path.get(0)==Orientation.left){
+                if(ec[0] != null)
+                    if(orientation==Orientation.up)
+                        moveLeft(1);
+                    else if(orientation==Orientation.down)
+                        moveRight(1);
+                    else if(orientation==Orientation.left)
+                        moveForward();
+                    else
+                        moveLeft(1);
+                else{
+                    //randomOrientation();
+                    double d = Math.random();
+                    if (d < 0.5) {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    } else {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    }
+                }
+            }
+
+            else if(path.get(0)==Orientation.right){
+                if(ec[1] != null)
+                    if(orientation==Orientation.up)
+                        moveRight(1);
+                    else if(orientation==Orientation.down)
+                        moveLeft(1);
+                    else if(orientation==Orientation.left)
+                        moveRight(1);
+                    else
+                        moveForward();
+                else{
+                    //randomOrientation();
+                    double d = Math.random();
+                    if (d < 0.5) {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    } else {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    }
+                }
+            }
+
         }
         if (debug == 2) {
             try {
