@@ -27,6 +27,7 @@ public class TestAppli {
 	protected static int SEED;
 	protected static int FIELD;
 	protected static int COLUMNS;
+	protected static int STEP;
 	protected static Color COLORROBOT;
 	protected static Color COLORGOAL;
 	protected static Color COLOROBSTACLE;
@@ -46,6 +47,7 @@ public class TestAppli {
 		TestAppli.NBOBSTACLE =  ifile.getIntValue("configuration", "obstacle");
 		TestAppli.SEED =  ifile.getIntValue("configuration", "seed");
 		TestAppli.FIELD =  ifile.getIntValue("configuration", "field");
+		TestAppli.STEP =  ifile.getIntValue("configuration", "step");
 		TestAppli.ROWS =  ifile.getIntValue("environment", "rows");
 		TestAppli.COLUMNS =  ifile.getIntValue("environment", "columns");
 		if(TestAppli.DISPLAY == 1) { 
@@ -114,7 +116,8 @@ public class TestAppli {
 			mymes.put("color", Integer.toString(TestAppli.COLOROBSTACLE.getRGB()));
 			mqttClient.publish("display/obstacle",mymes.toJSONString());
 			mymes = new JSONObject();
-			mymes.put("color", Integer.toString(TestAppli.COLOROTHER.getRGB()));
+			Color black = new Color(0, 0, 0);
+			mymes.put("color", Integer.toString(black.getRGB()));
 			mqttClient.publish("display/other",mymes.toJSONString());
 		}
 		mymes = new JSONObject();
@@ -137,7 +140,7 @@ public class TestAppli {
 		env.publishInitRobot();
 		env.publishGridSize();
 		tf.initTurtleGrid();
-		tf.schedule(100);	
+		tf.schedule(STEP);	
 		/*tf.publishRobotInit();
 		try {
 		    Thread.sleep(TestAppli.WAITTIME);
