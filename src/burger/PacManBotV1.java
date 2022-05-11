@@ -126,39 +126,39 @@ public class PacManBotV1 extends Turtlebot {
         while (!(goal.getX() == x && goal.getY() == y)) {
             if (goal.getY() - y > 0) {
                 if (goal.getY() - y > abs((goal.getX() - x))) {
-                    path.add(Orientation.up);
+                    path.add(Orientation.left);
                     y++;
                 } else {
                     if (goal.getX() - x > 0) {
-                        path.add(Orientation.right);
+                        path.add(Orientation.up);
                         x++;
                     } else {
-                        path.add(Orientation.left);
+                        path.add(Orientation.down);
                         x--;
                     }
                 }
             } else if (goal.getY() - y < 0) {
                 if (abs(goal.getY() - y) > abs((goal.getX() - x))) {
-                    path.add(Orientation.down);
+                    path.add(Orientation.right);
                     y--;
 
                 } else {
                     if (goal.getX() - x > 0) {
-                        path.add(Orientation.right);
+                        path.add(Orientation.up);
                         x++;
 
                     } else {
-                        path.add(Orientation.left);
+                        path.add(Orientation.down);
                         x--;
                     }
                 }
             } else {
                 if (goal.getX() - x > 0) {
-                    path.add(Orientation.right);
+                    path.add(Orientation.up);
                     x++;
 
                 } else {
-                    path.add(Orientation.left);
+                    path.add(Orientation.down);
                     x--;
                 }
             }
@@ -241,49 +241,103 @@ public class PacManBotV1 extends Turtlebot {
             result += st + ",";
 
 
-            Goal goal = new Goal(10,10);
+            Goal goal = new Goal(10, 10);
 
-            List<Orientation> path = getPath(grid,goal,x,y);
+            List<Orientation> path = getPath(grid, goal, x, y);
 
-            System.out.println(path);
-
-            if(goal.getX()==x && goal.getY()==y)
+            if (goal.getX() == x && goal.getY() == y)
                 return;
 
-            if(path.get(0)==Orientation.up){
-                if(ec[3] != null)
-                    if(orientation==Orientation.up)
-                        moveForward();
-                    else if(orientation==Orientation.down)
-                        moveRight(1);
-                    else if(orientation==Orientation.left)
-                        moveRight(1);
-                    else
-                        moveLeft(1);
-                else{
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
-                }
-            }
 
-            else if(path.get(0)==Orientation.down){
-                if(ec[2] != null)
-                    if(orientation==Orientation.up)
-                        moveRight(1);
-                    else if(orientation==Orientation.down)
+            if (path.get(0) == Orientation.up) {
+                if (ec[1] != null) {
+                    if (orientation == Orientation.up)
                         moveForward();
-                    else if(orientation==Orientation.left)
-                        moveLeft(1);
-                    else
+                    else if (orientation == Orientation.down) {
                         moveRight(1);
-                else{
+                        actionr = "turn_right";
+                    } else if (orientation == Orientation.left) {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    } else {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    }
+                } else {
+                    //randomOrientation();
+                    double d = Math.random();
+                    if (d < 0.5) {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    } else {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    }
+                }
+            } else if (path.get(0) == Orientation.down) {
+                if (ec[0] != null) {
+                    if (orientation == Orientation.up) {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    } else if (orientation == Orientation.down)
+                        moveForward();
+                    else if (orientation == Orientation.left) {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    } else {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    }
+                } else {
+                    //randomOrientation();
+                    double d = Math.random();
+                    if (d < 0.5) {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    } else {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    }
+                }
+            } else if (path.get(0) == Orientation.left) {
+                if (ec[2] != null) {
+                    if (orientation == Orientation.up) {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    } else if (orientation == Orientation.down) {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    } else if (orientation == Orientation.left)
+                        moveForward();
+                    else {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    }
+                } else {
+                    //randomOrientation();
+                    double d = Math.random();
+                    if (d < 0.5) {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    } else {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    }
+                }
+            } else if (path.get(0) == Orientation.right) {
+                if (ec[3] != null) {
+                    if (orientation == Orientation.up) {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    } else if (orientation == Orientation.down) {
+                        moveLeft(1);
+                        actionr = "turn_left";
+                    } else if (orientation == Orientation.left) {
+                        moveRight(1);
+                        actionr = "turn_right";
+                    } else
+                        moveForward();
+                } else {
                     //randomOrientation();
                     double d = Math.random();
                     if (d < 0.5) {
@@ -295,52 +349,8 @@ public class PacManBotV1 extends Turtlebot {
                     }
                 }
             }
-
-            else if(path.get(0)==Orientation.left){
-                if(ec[0] != null)
-                    if(orientation==Orientation.up)
-                        moveLeft(1);
-                    else if(orientation==Orientation.down)
-                        moveRight(1);
-                    else if(orientation==Orientation.left)
-                        moveForward();
-                    else
-                        moveLeft(1);
-                else{
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
-                }
-            }
-
-            else if(path.get(0)==Orientation.right){
-                if(ec[1] != null)
-                    if(orientation==Orientation.up)
-                        moveRight(1);
-                    else if(orientation==Orientation.down)
-                        moveLeft(1);
-                    else if(orientation==Orientation.left)
-                        moveRight(1);
-                    else
-                        moveForward();
-                else{
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
-                }
-            }
+            System.out.println(orientation);
+            System.out.println(actionr);
 
         }
         if (debug == 2) {
@@ -411,7 +421,7 @@ public class PacManBotV1 extends Turtlebot {
         robotj.put("y", "" + y);
         robotj.put("xo", "" + xo);
         robotj.put("yo", "" + yo);
-        //System.out.println("MOVE MOVE " + xo + " " + yo + " --> " + x + " " + y);
+        System.out.println("MOVE MOVE " + xo + " " + yo + " --> " + x + " " + y);
         clientMqtt.publish("robot/nextPosition", robotj.toJSONString());
     }
 
