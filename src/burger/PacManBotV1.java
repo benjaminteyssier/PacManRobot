@@ -18,9 +18,13 @@ public class PacManBotV1 extends Turtlebot {
     protected Random rnd;
     protected Grid grid;
 
+    protected ArrayList<Goal> goals;
+    protected Goal goal;
+
     public PacManBotV1(int id, String name, int seed, int field, Message clientMqtt, int debug) {
         super(id, name, seed, field, clientMqtt, debug);
         rnd = new Random(seed);
+        goals = new ArrayList<>();
     }
 
     protected void init() {
@@ -29,93 +33,102 @@ public class PacManBotV1 extends Turtlebot {
         clientMqtt.subscribe(name + "/grid/init");
         clientMqtt.subscribe(name + "/grid/update");
         clientMqtt.subscribe(name + "/action");
+        clientMqtt.subscribe(name+"/goals/init");
     }
 
-    public void handleMessage(String topic, JSONObject content){
-        if (topic.contains(name+"/grid/update")) {
-            JSONArray ja = (JSONArray)content.get("cells");
+    public void handleMessage(String topic, JSONObject content) {
+        if (topic.contains(name + "/grid/update")) {
+            JSONArray ja = (JSONArray) content.get("cells");
             List<Situated> ls = grid.get(ComponentType.robot);
-            for(int i=0; i < ja.size(); i++) {
-                JSONObject jo = (JSONObject)ja.get(i);
-                String typeCell = (String)jo.get("type");
-                int xo = Integer.parseInt((String)jo.get("x"));
-                int yo = Integer.parseInt((String)jo.get("y"));
-                int[] to = new int[]{xo,yo};
-                if(typeCell.equals("robot")) {
-                    int idr = Integer.parseInt((String)jo.get("id"));
+            for (int i = 0; i < ja.size(); i++) {
+                JSONObject jo = (JSONObject) ja.get(i);
+                String typeCell = (String) jo.get("type");
+                int xo = Integer.parseInt((String) jo.get("x"));
+                int yo = Integer.parseInt((String) jo.get("y"));
+                int[] to = new int[]{xo, yo};
+                if (typeCell.equals("robot")) {
+                    int idr = Integer.parseInt((String) jo.get("id"));
                     boolean findr = false;
-                    for(Situated sss:ls) {
-                        if(sss != this){
-                            RobotDescriptor rd = (RobotDescriptor)sss;
-                            if(rd.getId() == idr) {
+                    for (Situated sss : ls) {
+                        if (sss != this) {
+                            RobotDescriptor rd = (RobotDescriptor) sss;
+                            if (rd.getId() == idr) {
                                 grid.moveSituatedComponent(rd.getX(), rd.getY(), xo, yo);
                                 findr = true;
                                 break;
                             }
                         }
                     }
-                    if(!findr) {
-                        String namer = (String)jo.get("name");
+                    if (!findr) {
+                        String namer = (String) jo.get("name");
                         grid.forceSituatedComponent(new RobotDescriptor(to, idr, namer));
                     }
                 } else {
-                    Situated sg = grid.getCell(yo,xo);
+                    Situated sg = grid.getCell(yo, xo);
                     Situated s;
-                    if(sg.getComponentType() == ComponentType.unknown) {
-                        if(typeCell.equals("obstacle")){
+                    if (sg.getComponentType() == ComponentType.unknown) {
+                        if (typeCell.equals("obstacle")) {
                             //System.out.println("Add ObstacleCell");
                             s = new ObstacleDescriptor(to);
                         } else {
                             //System.out.println("Add EmptyCell " + xo + ", " + yo);
-                            s = new EmptyCell(xo,yo);
+                            s = new EmptyCell(xo, yo);
                         }
                         grid.forceSituatedComponent(s);
+                    } else if (typeCell.equals("goal")) {
+                        System.out.println("test122432432543253");
+                        s = new Goal(xo, yo);
                     }
                 }
             }
-            if(debug == 1) {
+            if (debug == 1) {
                 System.out.println("---- " + name + " ----");
                 grid.display();
             }
-        } else if (topic.contains(name+"/action")) {
-            int stepr = Integer.parseInt((String)content.get("step"));
+        } else if (topic.contains(name + "/action")) {
+            int stepr = Integer.parseInt((String) content.get("step"));
             move(stepr);
         } else if (topic.contains("inform/grid/init")) {
-            int rows = Integer.parseInt((String)content.get("rows"));
-            int columns = Integer.parseInt((String)content.get("columns"));
+            int rows = Integer.parseInt((String) content.get("rows"));
+            int columns = Integer.parseInt((String) content.get("columns"));
             grid = new Grid(rows, columns, seed);
             grid.initUnknown();
             grid.forceSituatedComponent(this);
-        }
-        else if (topic.contains(name+"/position/init")) {
-            x = Integer.parseInt((String)content.get("x"));
-            y = Integer.parseInt((String)content.get("y"));
-        }
-        else if (topic.contains(name+"/grid/init")) {
-            JSONArray ja = (JSONArray)content.get("cells");
-            for(int i=0; i < ja.size(); i++) {
-                JSONObject jo = (JSONObject)ja.get(i);
-                String typeCell = (String)jo.get("type");
-                int xo = Integer.parseInt((String)jo.get("x"));
-                int yo = Integer.parseInt((String)jo.get("y"));
-                int[] to = new int[]{xo,yo};
+        } else if (topic.contains(name + "/position/init")) {
+            x = Integer.parseInt((String) content.get("x"));
+            y = Integer.parseInt((String) content.get("y"));
+        } else if (topic.contains(name + "/grid/init")) {
+            JSONArray ja = (JSONArray) content.get("cells");
+            for (int i = 0; i < ja.size(); i++) {
+                JSONObject jo = (JSONObject) ja.get(i);
+                String typeCell = (String) jo.get("type");
+                int xo = Integer.parseInt((String) jo.get("x"));
+                int yo = Integer.parseInt((String) jo.get("y"));
+                int[] to = new int[]{xo, yo};
                 Situated s;
-                if(typeCell.equals("obstacle")){
+                if (typeCell.equals("obstacle")) {
                     //System.out.println("Add ObstacleCell");
                     s = new ObstacleDescriptor(to);
-                }
-                else if(typeCell.equals("robot")){
+                } else if (typeCell.equals("robot")) {
                     //System.out.println("Add RobotCell");
-                    int idr = Integer.parseInt((String)jo.get("id"));
-                    String namer = (String)jo.get("name");
+                    int idr = Integer.parseInt((String) jo.get("id"));
+                    String namer = (String) jo.get("name");
                     s = new RobotDescriptor(to, idr, namer);
-                }
-                else {
+                } else {
                     //System.out.println("Add EmptyCell " + xo + ", " + yo);
-                    s = new EmptyCell(xo,yo);
+                    s = new EmptyCell(xo, yo);
                 }
                 grid.forceSituatedComponent(s);
             }
+        } else if (topic.contains(name+"/goals/init")) {
+            JSONArray ja = (JSONArray) content.get("goals");
+            for(int i=0; i<ja.size();i++){
+                JSONObject jo = (JSONObject) ja.get(i);
+                int xG = ((Long) jo.get("x")).intValue();
+                int yG = ((Long) jo.get("y")).intValue();
+                goals.add(new Goal(xG,yG));
+            }
+            System.out.println(goals);
         }
     }
 
@@ -205,19 +218,19 @@ public class PacManBotV1 extends Turtlebot {
     }
 
     public void move(int step) {
+        System.out.println(grid.get(ComponentType.goal));
+
         String actionr = "move_forward";
-        String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y,x) + ",";
-        for (int i = 0; i < step; i++) {String st = "[";
-            EmptyCell[] ec = grid.getAdjacentEmptyCell(x,y);
-            Goal goal = new Goal(0, 0);
+        String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y, x) + ",";
+        goal = new Goal(0, 0);
+        for (int i = 0; i < step; i++) {
+            String st = "[";
+            EmptyCell[] ec = grid.getAdjacentEmptyCell(x, y);
 
             List<Orientation> path = getPath(grid, goal, x, y);
 
-            System.out.println(path);
-
             if (goal.getX() == x && goal.getY() == y)
                 return;
-
 
             if (path.get(0) == Orientation.up) {
                 if (ec[3] != null) {
@@ -287,8 +300,6 @@ public class PacManBotV1 extends Turtlebot {
                     path = getPath(grid, goal, x, y);
                 }
             }
-            System.out.println(orientation);
-            System.out.println(actionr);
 
         }
         if (debug == 2) {
