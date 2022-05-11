@@ -245,42 +245,52 @@ public class SmartTurtlebot extends Turtlebot{
 			} catch(IOException ioe){
 				System.out.println(ioe);
 			}
+		} else if(debug==1) {
+			System.out.println(result + " - " + actionr);
+		}
+	}
+
+	public void moveLeft() {
+		if(orientation == Orientation.up) {
+			orientation = Orientation.left;
+		}
+		else if(orientation == Orientation.left) {
+			orientation = Orientation.down;
+		}
+		else if(orientation == Orientation.right) {
+			orientation = Orientation.up;
+		}
+		else {
+			orientation = Orientation.right;
+		}
+	}
+
+	public void moveRight() {
+		if(orientation == Orientation.up) {
+			orientation = Orientation.right;
+		}
+		else if(orientation == Orientation.left) {
+			orientation = Orientation.up;
+		}
+		else if(orientation == Orientation.right) {
+			orientation = Orientation.down;
+		}
+		else {
+			orientation = Orientation.left;
 		}
 	}
 
 	public void moveLeft(int step) {
 		Orientation oldo = orientation;
 		for(int i = 0; i < step; i++){
-			if(orientation == Orientation.up) {
-				orientation = Orientation.left;
-			}
-			else if(orientation == Orientation.left) {
-				orientation = Orientation.down;
-			}
-			else if(orientation == Orientation.right) {
-				orientation = Orientation.up;
-			}
-			else {
-				orientation = Orientation.right;
-			}
+			moveLeft();	
 		}
 	}
 
 	public void moveRight(int step) {
 		Orientation oldo = orientation;
 		for(int i = 0; i < step; i++){
-			if(orientation == Orientation.up) {
-				orientation = Orientation.right;
-			}
-			else if(orientation == Orientation.left) {
-				orientation = Orientation.up;
-			}
-			else if(orientation == Orientation.right) {
-				orientation = Orientation.down;
-			}
-			else {
-				orientation = Orientation.left;
-			}
+			moveRight();
 		}	
 	}
 
