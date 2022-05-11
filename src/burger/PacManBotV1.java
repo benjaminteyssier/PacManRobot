@@ -209,7 +209,7 @@ public class PacManBotV1 extends Turtlebot {
         String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y,x) + ",";
         for (int i = 0; i < step; i++) {String st = "[";
             EmptyCell[] ec = grid.getAdjacentEmptyCell(x,y);
-            Goal goal = new Goal(10, 10);
+            Goal goal = new Goal(0, 0);
 
             List<Orientation> path = getPath(grid, goal, x, y);
 
@@ -234,15 +234,7 @@ public class PacManBotV1 extends Turtlebot {
                         actionr = "turn_left";
                     }
                 } else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
+                    path = getPath(grid, goal, x, y);
                 }
             } else if (path.get(0) == Orientation.down) {
                 if (ec[2] != null) {
@@ -259,15 +251,7 @@ public class PacManBotV1 extends Turtlebot {
                         actionr = "turn_right";
                     }
                 } else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
+                    path = getPath(grid, goal, x, y);
                 }
             } else if (path.get(0) == Orientation.left) {
                 if (ec[0] != null) {
@@ -284,15 +268,7 @@ public class PacManBotV1 extends Turtlebot {
                         actionr = "turn_left";
                     }
                 } else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
+                    path = getPath(grid, goal, x, y);
                 }
             } else if (path.get(0) == Orientation.right) {
                 if (ec[1] != null) {
@@ -308,15 +284,7 @@ public class PacManBotV1 extends Turtlebot {
                     } else
                         moveForward();
                 } else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
+                    path = getPath(grid, goal, x, y);
                 }
             }
             System.out.println(orientation);
