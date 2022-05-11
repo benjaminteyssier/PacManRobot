@@ -245,6 +245,8 @@ public class PacManBotV1 extends Turtlebot {
 
             List<Orientation> path = getPath(grid, goal, x, y);
 
+            System.out.println(path);
+
             if (goal.getX() == x && goal.getY() == y)
                 return;
 
