@@ -139,7 +139,7 @@ public class PacManBotV1 extends Turtlebot {
                 }
             } else if (goal.getY() - y < 0) {
                 if (abs(goal.getY() - y) > abs((goal.getX() - x))) {
-                    path.add(Orientation.right);
+                    path.add(Orientation.left);
                     y--;
 
                 } else {
@@ -252,7 +252,7 @@ public class PacManBotV1 extends Turtlebot {
 
 
             if (path.get(0) == Orientation.up) {
-                if (ec[1] != null) {
+                if (ec[3] != null) {
                     if (orientation == Orientation.up)
                         moveForward();
                     else if (orientation == Orientation.down) {
@@ -277,7 +277,7 @@ public class PacManBotV1 extends Turtlebot {
                     }
                 }
             } else if (path.get(0) == Orientation.down) {
-                if (ec[0] != null) {
+                if (ec[2] != null) {
                     if (orientation == Orientation.up) {
                         moveRight(1);
                         actionr = "turn_right";
@@ -302,7 +302,7 @@ public class PacManBotV1 extends Turtlebot {
                     }
                 }
             } else if (path.get(0) == Orientation.left) {
-                if (ec[2] != null) {
+                if (ec[0] != null) {
                     if (orientation == Orientation.up) {
                         moveLeft(1);
                         actionr = "turn_left";
@@ -327,7 +327,7 @@ public class PacManBotV1 extends Turtlebot {
                     }
                 }
             } else if (path.get(0) == Orientation.right) {
-                if (ec[3] != null) {
+                if (ec[1] != null) {
                     if (orientation == Orientation.up) {
                         moveRight(1);
                         actionr = "turn_right";
