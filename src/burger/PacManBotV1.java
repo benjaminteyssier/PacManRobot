@@ -33,7 +33,7 @@ public class PacManBotV1 extends Turtlebot {
         clientMqtt.subscribe(name + "/grid/init");
         clientMqtt.subscribe(name + "/grid/update");
         clientMqtt.subscribe(name + "/action");
-        clientMqtt.subscribe(name+"/goals/init");
+        clientMqtt.subscribe(name + "/goals/init");
     }
 
     public void handleMessage(String topic, JSONObject content) {
@@ -117,13 +117,13 @@ public class PacManBotV1 extends Turtlebot {
                 }
                 grid.forceSituatedComponent(s);
             }
-        } else if (topic.contains(name+"/goals/init")) {
+        } else if (topic.contains(name + "/goals/init")) {
             JSONArray ja = (JSONArray) content.get("goals");
-            for(int i=0; i<ja.size();i++){
+            for (int i = 0; i < ja.size(); i++) {
                 JSONObject jo = (JSONObject) ja.get(i);
                 int xG = ((Long) jo.get("x")).intValue();
                 int yG = ((Long) jo.get("y")).intValue();
-                goals.add(new Goal(xG,yG));
+                goals.add(new Goal(xG, yG));
             }
         }
     }
@@ -141,6 +141,62 @@ public class PacManBotV1 extends Turtlebot {
 
     public void setGrid(Grid grid) {
         this.grid = grid;
+    }
+
+    public void getGoal(Grid grid, ArrayList<Goal> goals) {
+        List<Situated> robots = grid.get(ComponentType.robot);
+        List<List<Goal>> repartition = new ArrayList<>();
+
+        int repartitionLength = Integer.MAX_VALUE;
+
+        for (int i = 0; i < robots.size(); i++) {
+            repartition.add(new ArrayList<>());
+            repartition.get(i).add(goals.get(i));
+        }
+
+        int compteurMax = goals.size() * robots.size();
+        int compteur = 0;
+        while (compteur < compteurMax) {
+            for (int i = 0; i < robots.size(); i++) {
+                for (Goal goal : repartition.get(i)) {
+                    for (int j = 0; j < robots.size(); j++) {
+                        repartition.get(j).add(goal);
+                        if (getRepartitionLength(robots, repartition) < repartitionLength) {
+                            repartitionLength = getRepartitionLength(robots, repartition);
+                            repartition.get(i).remove(goal);
+                            compteur = 0;
+                        } else {
+                            repartition.get(j).remove(goal);
+                        }
+                    }
+                }
+            }
+            compteur++;
+        }
+        for(int i=0;i<robots.size();i++){
+            Situated robot=robots.get(i);
+            if(robot.getX()==this.getX() && robot.getY()==this.getY()){
+                this.goal=repartition.get(i).get(0);
+            }
+        }
+    }
+
+    public int getRepartitionLength(List<Situated> robots, List<List<Goal>> repartition) {
+        int repartitionLength = 0;
+        for (int i = 0; i < robots.size(); i++) {
+            int robotXPos=robots.get(i).getX();
+            int robotYPos=robots.get(i).getY();
+            for (int j = 0; j < repartition.get(i).size(); j++) {
+                repartitionLength += getPath(grid, repartition.get(i).get(j), robotXPos, robotYPos).size();
+                robotXPos = repartition.get(i).get(j).getX();
+                robotYPos = repartition.get(i).get(j).getY();
+            }
+        }
+        return repartitionLength;
+    }
+
+    public void setGoal(Goal goal) {
+        this.goal = goal;
     }
 
     public List<Orientation> getPath(Grid grid, Goal goal, int x, int y) {
@@ -216,7 +272,8 @@ public class PacManBotV1 extends Turtlebot {
     public void move(int step) {
         String actionr = "move_forward";
         String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y, x) + ",";
-        goal = goals.get(0);
+        getGoal(grid,goals);
+        System.out.println(name+" : "+this.goal);
         for (int i = 0; i < step; i++) {
             String st = "[";
             EmptyCell[] ec = grid.getAdjacentEmptyCell(x, y);
