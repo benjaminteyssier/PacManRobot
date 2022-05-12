@@ -75,9 +75,6 @@ public class PacManBotV1 extends Turtlebot {
                             s = new EmptyCell(xo, yo);
                         }
                         grid.forceSituatedComponent(s);
-                    } else if (typeCell.equals("goal")) {
-                        System.out.println("test122432432543253");
-                        s = new Goal(xo, yo);
                     }
                 }
             }
@@ -128,7 +125,6 @@ public class PacManBotV1 extends Turtlebot {
                 int yG = ((Long) jo.get("y")).intValue();
                 goals.add(new Goal(xG,yG));
             }
-            System.out.println(goals);
         }
     }
 
@@ -218,11 +214,9 @@ public class PacManBotV1 extends Turtlebot {
     }
 
     public void move(int step) {
-        System.out.println(grid.get(ComponentType.goal));
-
         String actionr = "move_forward";
         String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y, x) + ",";
-        goal = new Goal(0, 0);
+        goal = goals.get(0);
         for (int i = 0; i < step; i++) {
             String st = "[";
             EmptyCell[] ec = grid.getAdjacentEmptyCell(x, y);
