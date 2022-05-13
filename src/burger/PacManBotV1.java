@@ -143,7 +143,7 @@ public class PacManBotV1 extends Turtlebot {
         this.grid = grid;
     }
 
-    public void getGoal(Grid grid, ArrayList<Goal> goals) {
+    public void chooseGoal(Grid grid, ArrayList<Goal> goals) {
         List<Situated> robots = grid.get(ComponentType.robot);
         List<List<Goal>> repartition = new ArrayList<>();
 
@@ -272,7 +272,7 @@ public class PacManBotV1 extends Turtlebot {
     public void move(int step) {
         String actionr = "move_forward";
         String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y, x) + ",";
-        getGoal(grid,goals);
+        chooseGoal(grid,goals);
         System.out.println(name+" : "+this.goal);
         for (int i = 0; i < step; i++) {
             String st = "[";
