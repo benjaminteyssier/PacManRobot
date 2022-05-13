@@ -235,10 +235,10 @@ public class PacManBotV1 extends Turtlebot {
 
         PointP finDuPath = new PointP(0, 0, null);
         while (!ouverts.isEmpty()) {
-            int m = 9900;
+            int m = Integer.MAX_VALUE;
             int Im = 0;
-            for (int i = 1; i < ouverts.size(); i++) {
-                int fi = ouverts.get(i).g + h(ouverts.get(i).value[0], ouverts.get(i).value[1], goal);
+            for (int i = 0; i < ouverts.size(); i++) {
+                int fi = ouverts.get(i).g + h(ouverts.get(i).getX(), ouverts.get(i).getY(), goal);
                 if (fi < m) {
                     m = ouverts.get(i).g;
                     Im = i;
@@ -247,7 +247,7 @@ public class PacManBotV1 extends Turtlebot {
             PointP p = ouverts.get(Im);
             ouverts.remove(Im);
             fermes.add(p);
-            if (p.value[0] == goal.getX() && p.value[1] == goal.getY()) {
+            if (p.getX() == goal.getX() && p.getY() == goal.getY()) {
                 finDuPath = p;
                 break;
             }
@@ -272,9 +272,8 @@ public class PacManBotV1 extends Turtlebot {
             }
 
         }
-
         // Transformation du chemin en liste d'orientation
-        while (finDuPath.getX() != x && finDuPath.getY() != y) {
+        while (finDuPath.papa!=null) {
             PointP papa = finDuPath.papa;
             int dX = papa.getX() - finDuPath.getX();
             int dY = papa.getY() - finDuPath.getY();
@@ -284,18 +283,16 @@ public class PacManBotV1 extends Turtlebot {
             } else if (dX == -1) {
                 path.push(Orientation.down);
             } else if (dY == 1) {
-                path.push(Orientation.right);
-            } else {
                 path.push(Orientation.left);
+            } else {
+                path.push(Orientation.right);
             }
+            finDuPath = papa;
         }
-
-
         return path;
     }
 
 
-    //samerelapute
     private void traitementSuccesseur(PointP p, List<PointP> fermes) {
         Queue<PointP> Ouverts = new LinkedList<PointP>();
         Ouverts.add(p);
@@ -313,8 +310,8 @@ public class PacManBotV1 extends Turtlebot {
     //fonction donnant les possibles positions suivantes
     private List<PointP> getVoisins(PointP p) {
         ArrayList<PointP> voisins = new ArrayList<PointP>();
-        int x = p.value[0];
-        int y = p.value[1];
+        int x = p.getX();
+        int y = p.getY();
 
         if (p.papa == null) {
             if (x - 1 >= 0) {
@@ -329,22 +326,27 @@ public class PacManBotV1 extends Turtlebot {
             if (y + 1 < grid.getRows()) {
                 voisins.add(new PointP(x, y + 1, p));
             }
-        }
+        } else {
 
-        int xpp = p.papa.value[0];
-        int ypp = p.papa.value[1];
+            int xpp = p.papa.getX();
+            int ypp = p.papa.getY();
 
-        if (x - 1 != xpp && (grid.getCell(x - 1, y).getComponentType() == ComponentType.empty || grid.getCell(x - 1, y).getComponentType() == ComponentType.goal) && x - 1 >= 0) {
-            voisins.add(new PointP(x - 1, y, p));
-        }
-        if (x + 1 != xpp && (grid.getCell(x + 1, y).getComponentType() == ComponentType.empty || grid.getCell(x + 1, y).getComponentType() == ComponentType.goal) && x + 1 < grid.getColumns()) {
-            voisins.add(new PointP(x + 1, y, p));
-        }
-        if (y + 1 != ypp && (grid.getCell(x, y + 1).getComponentType() == ComponentType.empty || grid.getCell(x, y + 1).getComponentType() == ComponentType.goal) && y + 1 < grid.getColumns()) {
-            voisins.add(new PointP(x, y + 1, p));
-        }
-        if (y + 1 != ypp && (grid.getCell(x, y - 1).getComponentType() == ComponentType.empty || grid.getCell(x, y - 1).getComponentType() == ComponentType.goal) && y - 1 > 0) {
-            voisins.add(new PointP(x, y - 1, p));
+            if ((x - 1) >= 0) {
+                if (x - 1 != xpp && (grid.getCell(x - 1, y).getComponentType() == ComponentType.empty || grid.getCell(x - 1, y).getComponentType() == ComponentType.goal || grid.getCell(x - 1, y).getComponentType() == ComponentType.unknown))
+                    voisins.add(new PointP(x - 1, y, p));
+            }
+
+            if ((x + 1) < grid.getColumns()) {
+                if (x + 1 != xpp && (grid.getCell(x + 1, y).getComponentType() == ComponentType.empty || grid.getCell(x + 1, y).getComponentType() == ComponentType.goal || grid.getCell(x + 1, y).getComponentType() == ComponentType.unknown))
+                    voisins.add(new PointP(x + 1, y, p));
+            }
+            if ((y + 1) < grid.getRows()) {
+                if (y + 1 != ypp && (grid.getCell(x, y + 1).getComponentType() == ComponentType.empty || grid.getCell(x, y + 1).getComponentType() == ComponentType.goal || grid.getCell(x, y + 1).getComponentType() == ComponentType.unknown))
+                    voisins.add(new PointP(x, y + 1, p));
+            }
+            if ((y - 1) >= 0)
+                if (y + 1 != ypp && (grid.getCell(x, y - 1).getComponentType() == ComponentType.empty || grid.getCell(x, y - 1).getComponentType() == ComponentType.goal || grid.getCell(x, y - 1).getComponentType() == ComponentType.unknown))
+                    voisins.add(new PointP(x, y - 1, p));
         }
 
         return voisins;
@@ -392,6 +394,8 @@ public class PacManBotV1 extends Turtlebot {
             EmptyCell[] ec = grid.getAdjacentEmptyCell(x, y);
 
             Stack<Orientation> path = getPath(goal, x, y);
+
+            System.out.println(path);
 
             nextStep = path.pop();
 
