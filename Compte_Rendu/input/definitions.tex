@@ -1,0 +1,44 @@
+% Date format
+\renewcommand{\dateseparator}{--}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyfoot[L]{\today}
+\fancyfoot[C]{}
+\fancyfoot[R]{Page \thepage \ of \pageref*{LastPage}}
+
+% Fonts
+\renewcommand{\familydefault}{\sfdefault}
+
+% Colors
+\definecolor{Blue}{RGB}{031, 119, 180}
+\definecolor{Orange}{RGB}{255, 127, 14}
+\definecolor{Green}{RGB}{044, 160, 44}
+\definecolor{Red}{RGB}{214, 039, 040}
+\definecolor{Grey}{RGB}{176, 176, 176}
+\definecolor{Mines}{RGB}{079, 054, 154}
+
+% Code listings
+\tcbset{colback=white, coltext=black, colframe=Mines, boxrule=0.06cm}
+\lstset{basicstyle=\normalsize\ttfamily,
+        keywordstyle=\color{Orange},
+        stringstyle=\color{Green},
+        identifierstyle=\color{black},
+        commentstyle=\color{Grey},
+        showstringspaces=false}
+
+% Lists
+%\setlength{\parindent}{0pt}
+%\setlist[itemize]{leftmargin=*}
+\setitemize[1]{label=\( \bullet \)}
+\setitemize[0]{label=\( \circ \)}
+
+% Bibliography
+\addbibresource{input/references.bib}
+
+% Glossaries
+\makeglossaries
+%\makenoidxglossaries
+
+% Maths
+\everymath{\displaystyle}

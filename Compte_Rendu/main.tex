@@ -1,0 +1,44 @@
+\documentclass{article}
+
+\input{input/packages}
+\graphicspath{{./images/}}
+\input{input/definitions}
+\input{input/glossary}
+\input{input/macro}
+
+
+
+\begin{document}
+
+%\includepdf[pages=1]{insert/cover.pdf}
+
+\tableofcontents \label{contents}
+
+%\newpage
+
+\subsection{Test Grid PacMan}
+
+\noindent
+\begin{tikzpicture}[scale=1.6]
+	\PCGridContour
+	\PCGridContourNum
+	\PCGridInside
+	\PCGridAxis
+	\PCGridDirection
+	
+	\PCGridWall{3}{3}
+	%\PCGridFill{0}{0}{red}
+	
+	
+	\PCPacMan{0}{5}{180}
+	\PCFruit{2}{3}{red}
+	
+	\PCGridInsideNum
+\end{tikzpicture}
+
+%\section{Glossaire}
+%\printglossary[type=\acronymtype]
+
+%\printglossary
+
+\end{document}
