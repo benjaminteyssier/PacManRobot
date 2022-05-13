@@ -24,31 +24,31 @@ public class Grid {
 
     public int[] locate() {
         int y=-1, x = -1;
-        boolean locationNotFound = true; 
+        boolean locationNotFound = true;
         int anti_boucle=0;
         int o_x=0,o_y=0;
         while (locationNotFound) {
-        	anti_boucle++;
+            anti_boucle++;
             y = rnd.nextInt(rows);
             x = rnd.nextInt(columns);
             if (grid[y][x].getComponentType() == ComponentType.empty) {
-            	boolean voisin_non_mur=true;
-            	System.out.println("______");
-            	for(int k=-1;k<2;k++) {
-			for(int l=-1;l<2;l++) {
-				if((x+k>=0 & y+l>=0)&(x+k<columns & y+l<rows)) {
-					if((grid[y+l][x+k].getComponentType()==ComponentType.obstacle)) {
-						voisin_non_mur=false;
-					}
-				}
-			}
-		}
-            	if(voisin_non_mur||(anti_boucle<20)) {
-            		locationNotFound = false;
-            	}
+                boolean voisin_non_mur=true;
+                System.out.println("____");
+                for(int k=-1;k<2;k++) {
+                    for(int l=-1;l<2;l++) {
+                        if((x+k>=0 & y+l>=0)&(x+k<columns & y+l<rows)) {
+                            if((grid[y+l][x+k].getComponentType()==ComponentType.obstacle)) {
+                                voisin_non_mur=false;
+                            }
+                        }
+                    }
+                }
+                if(voisin_non_mur||(anti_boucle<20)) {
+                    locationNotFound = false;
+                }
             }
         }
-        int [] result = {c,l};
+        int [] result = {x,y};
         return result;
     }
 
