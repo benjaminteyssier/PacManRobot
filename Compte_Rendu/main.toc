@@ -3,10 +3,12 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {1}Situation et solution proposée}{1}{section.1}%
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {2}Évaluation de notre solution}{1}{section.2}%
+\contentsline {subsection}{\numberline {1.1}Situations}{1}{subsection.1.1}%
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {3}Résultat}{1}{section.3}%
+\contentsline {section}{\numberline {2}Évaluation de notre solution}{2}{section.2}%
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {4}Choix d'implémentation}{1}{section.4}%
+\contentsline {section}{\numberline {3}Résultat}{2}{section.3}%
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {4.1}Test Grid PacMan}{1}{subsection.4.1}%
+\contentsline {section}{\numberline {4}Choix d'implémentation}{2}{section.4}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {5}Glossaire}{2}{section.5}%
