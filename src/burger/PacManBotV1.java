@@ -7,9 +7,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import static java.lang.Math.abs;
 
@@ -215,7 +213,7 @@ public class PacManBotV1 extends Turtlebot {
             int robotXPos = robots.get(i).getX();
             int robotYPos = robots.get(i).getY();
             for (int j = 0; j < repartition.get(i).size(); j++) {
-                repartitionLength += getPath(grid, repartition.get(i).get(j), robotXPos, robotYPos).size();
+                repartitionLength += getPath(repartition.get(i).get(j), robotXPos, robotYPos).size();
                 robotXPos = repartition.get(i).get(j).getX();
                 robotYPos = repartition.get(i).get(j).getY();
             }
@@ -227,50 +225,138 @@ public class PacManBotV1 extends Turtlebot {
         this.goal = goal;
     }
 
-    public List<Orientation> getPath(Grid grid, Goal goal, int x, int y) {
-        List<Orientation> path = new ArrayList<>();
-        while (!(goal.getX() == x && goal.getY() == y)) {
-            if (goal.getY() - y > 0) {
-                if (goal.getY() - y > abs((goal.getX() - x))) {
-                    path.add(Orientation.left);
-                    y++;
-                } else {
-                    if (goal.getX() - x > 0) {
-                        path.add(Orientation.up);
-                        x++;
-                    } else {
-                        path.add(Orientation.down);
-                        x--;
-                    }
-                }
-            } else if (goal.getY() - y < 0) {
-                if (abs(goal.getY() - y) > abs((goal.getX() - x))) {
-                    path.add(Orientation.left);
-                    y--;
+    public Stack<Orientation> getPath(Goal goal, int x, int y) {
+        Stack<Orientation> path = new Stack<Orientation>();
+        List<PointP> ouverts = new ArrayList<>();
+        List<PointP> fermes = new ArrayList<>();
 
-                } else {
-                    if (goal.getX() - x > 0) {
-                        path.add(Orientation.up);
-                        x++;
+        PointP ei = new PointP(x, y, null);
+        ouverts.add(ei);
 
-                    } else {
-                        path.add(Orientation.down);
-                        x--;
-                    }
-                }
-            } else {
-                if (goal.getX() - x > 0) {
-                    path.add(Orientation.up);
-                    x++;
-
-                } else {
-                    path.add(Orientation.down);
-                    x--;
+        PointP finDuPath = new PointP(0, 0, null);
+        while (!ouverts.isEmpty()) {
+            int m = Integer.MAX_VALUE;
+            int Im = 0;
+            for (int i = 0; i < ouverts.size(); i++) {
+                int fi = ouverts.get(i).g + h(ouverts.get(i).getX(), ouverts.get(i).getY(), goal);
+                if (fi < m) {
+                    m = ouverts.get(i).g;
+                    Im = i;
                 }
             }
+            PointP p = ouverts.get(Im);
+            ouverts.remove(Im);
+            fermes.add(p);
+            if (p.getX() == goal.getX() && p.getY() == goal.getY()) {
+                finDuPath = p;
+                break;
+            }
+
+            List<PointP> Voisins = getVoisins(p);
+            for (int i = 0; i < Voisins.size(); i++) {
+                PointP pi = Voisins.get(i);
+                int opi = pi.isIn(ouverts);
+                int fpi = pi.isIn(fermes);
+                if (opi == -1 && fpi == -1) {
+                    ouverts.add(pi);
+                } else if (opi != -1) {
+                    if (ouverts.get(opi).g > pi.g) {
+                        ouverts.get(opi).modG(pi.g);
+                        ouverts.get(opi).modPapa(p);
+                    }
+                } else if (fermes.get(fpi).g > pi.g) {
+                    fermes.get(fpi).modG(pi.g);
+                    fermes.get(fpi).modPapa(p);
+                    traitementSuccesseur(fermes.get(fpi), fermes);
+                }
+            }
+
+        }
+        // Transformation du chemin en liste d'orientation
+        while (finDuPath.papa!=null) {
+            PointP papa = finDuPath.papa;
+            int dX = papa.getX() - finDuPath.getX();
+            int dY = papa.getY() - finDuPath.getY();
+
+            if (dX == 1) {
+                path.push(Orientation.up);
+            } else if (dX == -1) {
+                path.push(Orientation.down);
+            } else if (dY == 1) {
+                path.push(Orientation.left);
+            } else {
+                path.push(Orientation.right);
+            }
+            finDuPath = papa;
         }
         return path;
     }
+
+
+    private void traitementSuccesseur(PointP p, List<PointP> fermes) {
+        Queue<PointP> Ouverts = new LinkedList<PointP>();
+        Ouverts.add(p);
+        while (!Ouverts.isEmpty()) {
+            PointP s = Ouverts.poll();
+            for (PointP pi : fermes) {
+                if (pi.papa == s) {
+                    pi.modG(s.g + 1);
+                    Ouverts.add(pi);
+                }
+            }
+        }
+    }
+
+    //fonction donnant les possibles positions suivantes
+    private List<PointP> getVoisins(PointP p) {
+        ArrayList<PointP> voisins = new ArrayList<PointP>();
+        int x = p.getX();
+        int y = p.getY();
+
+        if (p.papa == null) {
+            if (x - 1 >= 0) {
+                voisins.add(new PointP(x - 1, y, p));
+            }
+            if (y - 1 >= 0) {
+                voisins.add(new PointP(x, y - 1, p));
+            }
+            if (x + 1 < grid.getColumns()) {
+                voisins.add(new PointP(x + 1, y, p));
+            }
+            if (y + 1 < grid.getRows()) {
+                voisins.add(new PointP(x, y + 1, p));
+            }
+        } else {
+
+            int xpp = p.papa.getX();
+            int ypp = p.papa.getY();
+
+            if ((x - 1) >= 0) {
+                if (x - 1 != xpp && (grid.getCell(x - 1, y).getComponentType() == ComponentType.empty || grid.getCell(x - 1, y).getComponentType() == ComponentType.goal || grid.getCell(x - 1, y).getComponentType() == ComponentType.unknown))
+                    voisins.add(new PointP(x - 1, y, p));
+            }
+
+            if ((x + 1) < grid.getColumns()) {
+                if (x + 1 != xpp && (grid.getCell(x + 1, y).getComponentType() == ComponentType.empty || grid.getCell(x + 1, y).getComponentType() == ComponentType.goal || grid.getCell(x + 1, y).getComponentType() == ComponentType.unknown))
+                    voisins.add(new PointP(x + 1, y, p));
+            }
+            if ((y + 1) < grid.getRows()) {
+                if (y + 1 != ypp && (grid.getCell(x, y + 1).getComponentType() == ComponentType.empty || grid.getCell(x, y + 1).getComponentType() == ComponentType.goal || grid.getCell(x, y + 1).getComponentType() == ComponentType.unknown))
+                    voisins.add(new PointP(x, y + 1, p));
+            }
+            if ((y - 1) >= 0)
+                if (y + 1 != ypp && (grid.getCell(x, y - 1).getComponentType() == ComponentType.empty || grid.getCell(x, y - 1).getComponentType() == ComponentType.goal || grid.getCell(x, y - 1).getComponentType() == ComponentType.unknown))
+                    voisins.add(new PointP(x, y - 1, p));
+        }
+
+        return voisins;
+    }
+
+    //distance quadratique à l'objectif
+    private int h(int x, int y, Goal goal) {
+        return ((x - goal.getX()) ^ 2 + (y - goal.getY()) ^ 2);
+    }
+
 
     public void randomOrientation() {
         double d = Math.random();
@@ -302,16 +388,21 @@ public class PacManBotV1 extends Turtlebot {
         String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y, x) + ",";
         chooseGoal(grid, goals);
         System.out.println(name + " : " + this.goal);
+        Orientation nextStep = null;
         for (int i = 0; i < step; i++) {
             String st = "[";
             EmptyCell[] ec = grid.getAdjacentEmptyCell(x, y);
 
-            List<Orientation> path = getPath(grid, goal, x, y);
+            Stack<Orientation> path = getPath(goal, x, y);
+
+            System.out.println(path);
+
+            nextStep = path.pop();
 
             if (goal.getX() == x && goal.getY() == y)
                 return;
 
-            if (path.get(0) == Orientation.up) {
+            if (nextStep == Orientation.up) {
                 if (ec[3] != null) {
                     if (orientation == Orientation.up)
                         moveForward();
@@ -326,9 +417,9 @@ public class PacManBotV1 extends Turtlebot {
                         actionr = "turn_left";
                     }
                 } else {
-                    path = getPath(grid, goal, x, y);
+                    path = getPath(goal, x, y);
                 }
-            } else if (path.get(0) == Orientation.down) {
+            } else if (nextStep == Orientation.down) {
                 if (ec[2] != null) {
                     if (orientation == Orientation.up) {
                         moveRight(1);
@@ -343,9 +434,9 @@ public class PacManBotV1 extends Turtlebot {
                         actionr = "turn_right";
                     }
                 } else {
-                    path = getPath(grid, goal, x, y);
+                    path = getPath(goal, x, y);
                 }
-            } else if (path.get(0) == Orientation.left) {
+            } else if (nextStep == Orientation.left) {
                 if (ec[0] != null) {
                     if (orientation == Orientation.up) {
                         moveLeft(1);
@@ -360,9 +451,9 @@ public class PacManBotV1 extends Turtlebot {
                         actionr = "turn_left";
                     }
                 } else {
-                    path = getPath(grid, goal, x, y);
+                    path = getPath(goal, x, y);
                 }
-            } else if (path.get(0) == Orientation.right) {
+            } else if (nextStep == Orientation.right) {
                 if (ec[1] != null) {
                     if (orientation == Orientation.up) {
                         moveRight(1);
@@ -376,7 +467,7 @@ public class PacManBotV1 extends Turtlebot {
                     } else
                         moveForward();
                 } else {
-                    path = getPath(grid, goal, x, y);
+                    path = getPath(goal, x, y);
                 }
             }
 
