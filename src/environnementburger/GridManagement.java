@@ -23,6 +23,7 @@ import org.json.simple.JSONObject;
 
 
 public class GridManagement implements SimulationComponent {
+
     protected Grid grid;
     private ArrayList<Goal> goals;
     private static final String turtlebotName = "burger_";

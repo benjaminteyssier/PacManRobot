@@ -53,6 +53,9 @@ public class IniFile {
       case "gray":
         mycolor = Color.GRAY;
         break;
+      case "black":
+      	mycolor = Color.BLACK;
+      	break;
       default:
           mycolor = Color.WHITE;
     }

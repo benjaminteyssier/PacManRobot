@@ -116,8 +116,7 @@ public class TestAppli {
 			mymes.put("color", Integer.toString(TestAppli.COLOROBSTACLE.getRGB()));
 			mqttClient.publish("display/obstacle",mymes.toJSONString());
 			mymes = new JSONObject();
-			Color black = new Color(0, 0, 0);
-			mymes.put("color", Integer.toString(black.getRGB()));
+			mymes.put("color", Integer.toString(TestAppli.COLOROTHER.getRGB()));
 			mqttClient.publish("display/other",mymes.toJSONString());
 		}
 		mymes = new JSONObject();
