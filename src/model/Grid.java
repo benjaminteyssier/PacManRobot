@@ -23,14 +23,29 @@ public class Grid {
     }
 
     public int[] locate() {
-        int l=-1, c = -1;
+        int y=-1, x = -1;
         boolean locationNotFound = true; 
+        int anti_boucle=0;
+        int o_x=0,o_y=0;
         while (locationNotFound) {
-            l = rnd.nextInt(rows);
-            c = rnd.nextInt(columns);
-            if (grid[l][c].getComponentType() == ComponentType.empty) {
-                locationNotFound = false;
-                //grid[l][c] = nb; 
+        	anti_boucle++;
+            y = rnd.nextInt(rows);
+            x = rnd.nextInt(columns);
+            if (grid[y][x].getComponentType() == ComponentType.empty) {
+            	boolean voisin_non_mur=true;
+            	System.out.println("______");
+            	for(int k=-1;k<2;k++) {
+			for(int l=-1;l<2;l++) {
+				if((x+k>=0 & y+l>=0)&(x+k<columns & y+l<rows)) {
+					if((grid[y+l][x+k].getComponentType()==ComponentType.obstacle)) {
+						voisin_non_mur=false;
+					}
+				}
+			}
+		}
+            	if(voisin_non_mur||(anti_boucle<20)) {
+            		locationNotFound = false;
+            	}
             }
         }
         int [] result = {c,l};
