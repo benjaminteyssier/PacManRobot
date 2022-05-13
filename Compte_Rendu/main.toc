@@ -1,0 +1,4 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\babel@toc {french}{}\relax 
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {0.1}Test Grid PacMan}{1}{subsection.0.1}%

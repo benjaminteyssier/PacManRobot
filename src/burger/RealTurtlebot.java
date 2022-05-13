@@ -16,207 +16,181 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import java.util.List;
 
-public class RealTurtlebot extends Turtlebot{
+public class RealTurtlebot extends SmartTurtlebot{
 	protected Grid grid;
 	protected RosbridgeClient clientRosbridge;
 	public static int waitTimeCommunication = 300;
-	public static int waitTimeAction= 4000;
+	public static int waitTimeAction= 3000;
 	public static String ip = "10.200.3.101"; //"10.3.143.1";
 	public static String port = "9090";
+	public String prefix;
+	public boolean myactionresult;
 
 	public RealTurtlebot(int id, String name, int seed, int field, Message clientMqtt, int debug) {
 		super(id, name, seed, field, clientMqtt, debug);
-		clientRosbridge = new RosbridgeClient(RealTurtlebot.ip, RealTurtlebot.port);
-	}
-
-		protected void init() {
-		clientMqtt.subscribe("inform/grid/init");
-    	clientMqtt.subscribe(name + "/position/init");		
-		clientMqtt.subscribe(name + "/grid/init");		
-		clientMqtt.subscribe(name + "/grid/update");		
-		clientMqtt.subscribe(name + "/action");		
-	}
-
-	public void handleMessage(String topic, JSONObject content){				
-		if (topic.contains(name+"/grid/update")) {
-      		JSONArray ja = (JSONArray)content.get("cells");
-      		List<Situated> ls = grid.get(ComponentType.robot);
-      		for(int i=0; i < ja.size(); i++) {
-      			JSONObject jo = (JSONObject)ja.get(i);
-	        	String typeCell = (String)jo.get("type");
-    	    	int xo = Integer.parseInt((String)jo.get("x"));
-    	    	int yo = Integer.parseInt((String)jo.get("y"));
-        		int[] to = new int[]{xo,yo};
-           		if(typeCell.equals("robot")) {
-           			int idr = Integer.parseInt((String)jo.get("id"));
-           			boolean findr = false;
-           			for(Situated sss:ls) {
-           				if(sss != this){
-	           				RobotDescriptor rd = (RobotDescriptor)sss;
-    	       				if(rd.getId() == idr) {
-        	   					grid.moveSituatedComponent(rd.getX(), rd.getY(), xo, yo);
-           						findr = true;
-           						break;
-           					}
-           				}
-           			}
-           			if(!findr) {
-	           			String namer = (String)jo.get("name");
-    	    			grid.forceSituatedComponent(new RobotDescriptor(to, idr, namer));
-    	    		}
-        		} else {
-        			Situated sg = grid.getCell(yo,xo);
-        			Situated s;
-        			if(sg.getComponentType() == ComponentType.unknown) {
-        				if(typeCell.equals("obstacle")){
-							//System.out.println("Add ObstacleCell");
-        					s = new ObstacleDescriptor(to);
-        				} else {
-        					//System.out.println("Add EmptyCell " + xo + ", " + yo);
-        					s = new EmptyCell(xo,yo);
-        				}
-        				grid.forceSituatedComponent(s);
-    				}
-    			}
-    		}
-      		if(debug == 1) {
-		   		System.out.println("---- " + name + " ----");
-        		grid.display();
-        	}
-        } else if (topic.contains(name+"/action")) {
-    	    int stepr = Integer.parseInt((String)content.get("step"));
-        	move(stepr);
-        } else if (topic.contains("inform/grid/init")) {
-        	int rows = Integer.parseInt((String)content.get("rows"));
-        	int columns = Integer.parseInt((String)content.get("columns"));
-        	grid = new Grid(rows, columns, seed);
-			grid.initUnknown();
-		    grid.forceSituatedComponent(this);
+		myactionresult = false;
+		clientRosbridge = new RosbridgeClient(RealTurtlebot.ip, RealTurtlebot.port, this);
+		try{
+			Thread.sleep(1000);
+		}catch(Exception e){
+			System.out.println(e);
 		}
-        else if (topic.contains(name+"/position/init")) {
-      		x = Integer.parseInt((String)content.get("x"));
-        	y = Integer.parseInt((String)content.get("y"));
-        }
-        else if (topic.contains(name+"/grid/init")) {
-      		JSONArray ja = (JSONArray)content.get("cells");
-      		for(int i=0; i < ja.size(); i++) {
-      			JSONObject jo = (JSONObject)ja.get(i);
-	        	String typeCell = (String)jo.get("type");
-    	    	int xo = Integer.parseInt((String)jo.get("x"));
-    	    	int yo = Integer.parseInt((String)jo.get("y"));
-        		int[] to = new int[]{xo,yo};
-        		Situated s;
-				if(typeCell.equals("obstacle")){
-					//System.out.println("Add ObstacleCell");
-        			s = new ObstacleDescriptor(to);
-        		}
-        		else if(typeCell.equals("robot")){
-        			//System.out.println("Add RobotCell");
-        			int idr = Integer.parseInt((String)jo.get("id"));
-        			String namer = (String)jo.get("name");
-        			s = new RobotDescriptor(to, idr, namer);
-        		}
-        		else {
-        			//System.out.println("Add EmptyCell " + xo + ", " + yo);
-        			s = new EmptyCell(xo,yo);
-        		}
-        		grid.forceSituatedComponent(s);
-      		}
-        }
 	}
 
-	public void setLocation(int x, int y) {
-		int xo = this.x;
-		int yo = this.y;
-		this.x = x;
-		this.y = y;
-		grid.moveSituatedComponent(xo, yo, x, y);
+	public void inform() {
+		myactionresult = true;
+	}
+	
+	public void handleMessage(String topic, JSONObject content){				
+		super.handleMessage(topic, content);
+        if (topic.contains(name+"/position/init")) {
+        	prefix = (String)content.get("prefix");
+   			JSONObject message = new JSONObject();
+			message.put("topic", "/"+prefix+"/burger_move/result");
+			message.put("op", "subscribe");
+			message.put("type", "burger_move_action/Burger_moveActionResult");
+			clientRosbridge.getWsc().send(message.toJSONString());
+        }        
 	}
 
-	public String display(){
-		return super.toString();
-	}
 
-	public boolean isGoalReached(){
-		return false;
-	}
-
-	public void move(int step) {
-		System.out.println(step);
+	public String toString() {
+		return "{" + name + "; " + id + "; " + x + "; " + y + "; " + orientation + "; " + prefix + "}";
 	}
 
 	public void moveForward() {
-		JSONObject message = new JSONObject();
-		message.put("topic", "/" + name + "/robot_command");
-		JSONObject msg = new JSONObject();
-		msg.put("data", "forward");
-		message.put("msg", msg);
-		message.put("op", "publish");
-
-		clientRosbridge.getWsc().send(message.toJSONString());
-		System.out.println("Message ROS" + message.toJSONString());
 		try {
-			Thread.sleep(RealTurtlebot.waitTimeAction);
-		} catch (InterruptedException e) {
+			/*JSONObject message = new JSONObject();
+			message.put("topic", "/" + prefix + "/robot_command");
+			JSONObject msg = new JSONObject();
+			msg.put("data", "forward");
+			message.put("msg", msg);
+			message.put("op", "publish");*/
+			JSONObject message = new JSONObject();
+			message.put("topic", "/" + prefix + "/burger_move/goal");
+			//message.put("type", "burger_move_action/Burger_moveActionGoal");
+			JSONObject msg = new JSONObject();
+			JSONObject jos = new JSONObject();			
+			jos.put("secs",0);
+			jos.put("nsecs",0);
+			JSONObject joh = new JSONObject();			
+			joh.put("seq",0);
+			joh.put("stamp",jos);
+			joh.put("frame_id","");
+			msg.put("header", joh);
+			JSONObject joi = new JSONObject();			
+			joi.put("stamp",jos);
+			joi.put("id","");
+			msg.put("goal_id", joi);
+			JSONObject jog = new JSONObject();			
+			jog.put("distance",30);
+			jog.put("direction","forward");
+			msg.put("goal", jog);			
+			message.put("msg", msg);
+			message.put("op", "publish");
+			clientRosbridge.getWsc().send(message.toJSONString());
+			System.out.println("Message ROS" + message.toJSONString());
+			while(!myactionresult){
+				Thread.sleep(RealTurtlebot.waitTimeAction);
+			}
+			myactionresult = false;
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		super.moveForward();
 	}
 
 	public void moveBackward() {
-		JSONObject message = new JSONObject();
-		message.put("topic", "/" + name + "/robot_command");
-		JSONObject msg = new JSONObject();
-		msg.put("data", "backward");
-		message.put("msg", msg);
-		message.put("op", "publish");
-
-		clientRosbridge.getWsc().send(message.toJSONString());
-
 		try {
-			Thread.sleep(RealTurtlebot.waitTimeAction);
-		} catch (InterruptedException e) {
+			JSONObject message = new JSONObject();
+			message.put("topic", "/" + prefix + "/robot_command");
+			JSONObject msg = new JSONObject();
+			msg.put("data", "backward");
+			message.put("msg", msg);
+			message.put("op", "publish");
+			clientRosbridge.getWsc().send(message.toJSONString());
+			while(!myactionresult){
+				Thread.sleep(RealTurtlebot.waitTimeAction);
+			}
+			myactionresult = false;
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		super.moveBackward();
 	}
 
 	/* Rotate the robot to the left */
-	public void moveLeft(int step) {
-		for (int i = 0; i < step; i++) {
+	public void moveLeft() {
+		try {
 			JSONObject message = new JSONObject();
-			message.put("topic", "/" + name + "/robot_command");
+			message.put("topic", "/" + prefix + "/burger_move/goal");
+			//message.put("type", "burger_move_action/Burger_moveActionGoal");
 			JSONObject msg = new JSONObject();
-			msg.put("data", "left");
+			JSONObject jos = new JSONObject();			
+			jos.put("secs",0);
+			jos.put("nsecs",0);
+			JSONObject joh = new JSONObject();			
+			joh.put("seq",0);
+			joh.put("stamp",jos);
+			joh.put("frame_id","");
+			msg.put("header", joh);
+			JSONObject joi = new JSONObject();			
+			joi.put("stamp",jos);
+			joi.put("id","");
+			msg.put("goal_id", joi);
+			JSONObject jog = new JSONObject();			
+			jog.put("distance",155);
+			jog.put("direction","left");
+			msg.put("goal", jog);			
 			message.put("msg", msg);
 			message.put("op", "publish");
-
 			clientRosbridge.getWsc().send(message.toJSONString());
-
-			try {
+			//Thread.sleep(RealTurtlebot.waitTimeAction);
+			while(!myactionresult){
 				Thread.sleep(RealTurtlebot.waitTimeAction);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
+			myactionresult = false;
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+		super.moveLeft();
 	}
 
 	/* Rotate the robot to the right */
-	public void moveRight(int step) {
-		for (int i = 0; i < step; i++) {
+	public void moveRight() {
+		try {
 			JSONObject message = new JSONObject();
-			message.put("topic", "/" + name + "/robot_command");
+			message.put("topic", "/" + prefix + "/burger_move/goal");
+			//message.put("type", "burger_move_action/Burger_moveActionGoal");
 			JSONObject msg = new JSONObject();
-			msg.put("data", "right");
+			JSONObject jos = new JSONObject();			
+			jos.put("secs",0);
+			jos.put("nsecs",0);
+			JSONObject joh = new JSONObject();			
+			joh.put("seq",0);
+			joh.put("stamp",jos);
+			joh.put("frame_id","");
+			msg.put("header", joh);
+			JSONObject joi = new JSONObject();			
+			joi.put("stamp",jos);
+			joi.put("id","");
+			msg.put("goal_id", joi);
+			JSONObject jog = new JSONObject();			
+			jog.put("distance",155);
+			jog.put("direction","right");
+			msg.put("goal", jog);			
 			message.put("msg", msg);
 			message.put("op", "publish");
-
-			clientRosbridge.getWsc().send(message.toJSONString());
-
-			try {
+			clientRosbridge.getWsc().send(message.toJSONString());		
+			//Thread.sleep(RealTurtlebot.waitTimeAction);
+			while(!myactionresult){
 				Thread.sleep(RealTurtlebot.waitTimeAction);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
+			myactionresult = false;
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+		super.moveRight();
 	}
 
 

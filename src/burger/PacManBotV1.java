@@ -16,14 +16,15 @@ import static java.lang.Math.abs;
 public class PacManBotV1 extends Turtlebot {
 
     protected Random rnd;
-    protected List<Situated> grid;
-    protected int rows;
-    protected int columns;
+    protected Grid grid;
+
+    protected ArrayList<Goal> goals;
+    protected Goal goal;
 
     public PacManBotV1(int id, String name, int seed, int field, Message clientMqtt, int debug) {
         super(id, name, seed, field, clientMqtt, debug);
         rnd = new Random(seed);
-        grid = new ArrayList<Situated>();
+        goals = new ArrayList<>();
     }
 
     protected void init() {
@@ -32,50 +33,14 @@ public class PacManBotV1 extends Turtlebot {
         clientMqtt.subscribe(name + "/grid/init");
         clientMqtt.subscribe(name + "/grid/update");
         clientMqtt.subscribe(name + "/action");
+        clientMqtt.subscribe(name + "/goals/init");
+        clientMqtt.subscribe("/goal/update");
     }
 
     public void handleMessage(String topic, JSONObject content) {
         if (topic.contains(name + "/grid/update")) {
-            grid = new ArrayList<Situated>();
             JSONArray ja = (JSONArray) content.get("cells");
-            for (int i = 0; i < ja.size(); i++) {
-                JSONObject jo = (JSONObject) ja.get(i);
-                String typeCell = (String) jo.get("type");
-                int xo = Integer.parseInt((String) jo.get("x"));
-                int yo = Integer.parseInt((String) jo.get("y"));
-                int[] to = new int[]{xo, yo};
-                if (typeCell.equals("robot")) {
-                    int idr = Integer.parseInt((String) jo.get("id"));
-                    String namer = (String) jo.get("name");
-                    if (idr != id) {
-                        grid.add(new RobotDescriptor(to, idr, namer));
-                    }
-                } else if (typeCell.equals("obstacle")) {
-                    //System.out.println("Add ObstacleCell");
-                    grid.add(new ObstacleDescriptor(to));
-                } else {
-                    //System.out.println("Add EmptyCell " + xo + ", " + yo);
-                    grid.add(new EmptyCell(xo, yo));
-                }
-            }
-            if (debug == 1) {
-                System.out.println("---- " + name + " ----");
-                for (Situated s : grid) {
-                    s.display();
-                }
-            }
-        } else if (topic.contains(name + "/action")) {
-            int stepr = Integer.parseInt((String) content.get("step"));
-            move(stepr);
-        } else if (topic.contains("inform/grid/init")) {
-            rows = Integer.parseInt((String) content.get("rows"));
-            columns = Integer.parseInt((String) content.get("columns"));
-        } else if (topic.contains(name + "/position/init")) {
-            x = Integer.parseInt((String) content.get("x"));
-            y = Integer.parseInt((String) content.get("y"));
-        } else if (topic.contains(name + "/grid/init")) {
-            grid = new ArrayList<Situated>();
-            JSONArray ja = (JSONArray) content.get("cells");
+            List<Situated> ls = grid.get(ComponentType.robot);
             for (int i = 0; i < ja.size(); i++) {
                 JSONObject jo = (JSONObject) ja.get(i);
                 String typeCell = (String) jo.get("type");
@@ -85,23 +50,90 @@ public class PacManBotV1 extends Turtlebot {
                 if (typeCell.equals("robot")) {
                     int idr = Integer.parseInt((String) jo.get("id"));
                     boolean findr = false;
-                    String namer = (String) jo.get("name");
-                    if (idr != id) {
-                        grid.add(new RobotDescriptor(to, idr, namer));
+                    for (Situated sss : ls) {
+                        if (sss != this) {
+                            RobotDescriptor rd = (RobotDescriptor) sss;
+                            if (rd.getId() == idr) {
+                                grid.moveSituatedComponent(rd.getX(), rd.getY(), xo, yo);
+                                findr = true;
+                                break;
+                            }
+                        }
                     }
-                } else if (typeCell.equals("obstacle")) {
-                    //System.out.println("Add ObstacleCell");
-                    grid.add(new ObstacleDescriptor(to));
+                    if (!findr) {
+                        String namer = (String) jo.get("name");
+                        grid.forceSituatedComponent(new RobotDescriptor(to, idr, namer));
+                    }
                 } else {
-                    //System.out.println("Add EmptyCell " + xo + ", " + yo);
-                    grid.add(new EmptyCell(xo, yo));
+                    Situated sg = grid.getCell(yo, xo);
+                    Situated s;
+                    if (sg.getComponentType() == ComponentType.unknown) {
+                        if (typeCell.equals("obstacle")) {
+                            //System.out.println("Add ObstacleCell");
+                            s = new ObstacleDescriptor(to);
+                        } else {
+                            //System.out.println("Add EmptyCell " + xo + ", " + yo);
+                            s = new EmptyCell(xo, yo);
+                        }
+                        grid.forceSituatedComponent(s);
+                    }
                 }
             }
             if (debug == 1) {
                 System.out.println("---- " + name + " ----");
-                for (Situated s : grid) {
-                    s.display();
+                grid.display();
+            }
+        } else if (topic.contains(name + "/action")) {
+            int stepr = Integer.parseInt((String) content.get("step"));
+            move(stepr);
+        } else if (topic.contains("inform/grid/init")) {
+            int rows = Integer.parseInt((String) content.get("rows"));
+            int columns = Integer.parseInt((String) content.get("columns"));
+            grid = new Grid(rows, columns, seed);
+            grid.initUnknown();
+            grid.forceSituatedComponent(this);
+        } else if (topic.contains(name + "/position/init")) {
+            x = Integer.parseInt((String) content.get("x"));
+            y = Integer.parseInt((String) content.get("y"));
+        } else if (topic.contains(name + "/grid/init")) {
+            JSONArray ja = (JSONArray) content.get("cells");
+            for (int i = 0; i < ja.size(); i++) {
+                JSONObject jo = (JSONObject) ja.get(i);
+                String typeCell = (String) jo.get("type");
+                int xo = Integer.parseInt((String) jo.get("x"));
+                int yo = Integer.parseInt((String) jo.get("y"));
+                int[] to = new int[]{xo, yo};
+                Situated s;
+                if (typeCell.equals("obstacle")) {
+                    //System.out.println("Add ObstacleCell");
+                    s = new ObstacleDescriptor(to);
+                } else if (typeCell.equals("robot")) {
+                    //System.out.println("Add RobotCell");
+                    int idr = Integer.parseInt((String) jo.get("id"));
+                    String namer = (String) jo.get("name");
+                    s = new RobotDescriptor(to, idr, namer);
+                } else {
+                    //System.out.println("Add EmptyCell " + xo + ", " + yo);
+                    s = new EmptyCell(xo, yo);
                 }
+                grid.forceSituatedComponent(s);
+            }
+        } else if (topic.contains(name + "/goals/init")) {
+            JSONArray ja = (JSONArray) content.get("goals");
+            for (int i = 0; i < ja.size(); i++) {
+                JSONObject jo = (JSONObject) ja.get(i);
+                int xG = ((Long) jo.get("x")).intValue();
+                int yG = ((Long) jo.get("y")).intValue();
+                goals.add(new Goal(xG, yG));
+            }
+        } else if (topic.contains("/goal/update")) {
+            JSONArray ja = (JSONArray) content.get("goals");
+            goals.clear();
+            for (int i = 0; i < ja.size(); i++) {
+                JSONObject jo = (JSONObject) ja.get(i);
+                int xG = ((Long) jo.get("x")).intValue();
+                int yG = ((Long) jo.get("y")).intValue();
+                goals.add(new Goal(xG, yG));
             }
         }
     }
@@ -113,15 +145,89 @@ public class PacManBotV1 extends Turtlebot {
         this.y = y;
     }
 
-    public List<Situated> getGrid() {
+    public Grid getGrid() {
         return grid;
     }
 
-    public void setGrid(List<Situated> grid) {
+    public void setGrid(Grid grid) {
         this.grid = grid;
     }
 
-    public List<Orientation> getPath(List<Situated> grid, Goal goal, int x, int y) {
+    public void chooseGoal(Grid grid, ArrayList<Goal> goals) {
+        List<Situated> robots = grid.get(ComponentType.robot);
+        List<List<Goal>> repartition = new ArrayList<>();
+
+        int repartitionLength = Integer.MAX_VALUE;
+
+        for (int i = 0; i < robots.size(); i++) {
+            repartition.add(new ArrayList<>());
+            repartition.get(i).add(goals.get(i));
+        }
+
+        int compteurMax = goals.size() * robots.size();
+        int compteur = 0;
+        while (compteur < compteurMax) {
+            for (int i = 0; i < robots.size(); i++) {
+                for (Goal goal : repartition.get(i)) {
+                    for (int j = 0; j < robots.size(); j++) {
+                        repartition.get(j).add(goal);
+                        if (getRepartitionLength(robots, repartition) < repartitionLength) {
+                            repartitionLength = getRepartitionLength(robots, repartition);
+                            repartition.get(i).remove(goal);
+                            compteur = 0;
+                        } else {
+                            repartition.get(j).remove(goal);
+                        }
+                    }
+                }
+            }
+            compteur++;
+        }
+        for (int i = 0; i < robots.size(); i++) {
+            Situated robot = robots.get(i);
+            if (robot.getX() == this.getX() && robot.getY() == this.getY()) {
+                this.goal = repartition.get(i).get(0);
+                repartition.get(i).remove(0);
+                JSONObject joG = goalsToJSONObject(goals);
+                clientMqtt.publish("/goals/update", joG.toJSONString());
+            }
+        }
+
+    }
+
+    public JSONObject goalsToJSONObject(ArrayList<Goal> goals) {
+        JSONObject jo = new JSONObject();
+        JSONArray ja = new JSONArray();
+
+        for (Goal goal : goals) {
+            JSONObject jGoal = new JSONObject();
+            jGoal.put("x", goal.getX());
+            jGoal.put("y", goal.getY());
+            ja.add(jGoal);
+        }
+        jo.put("goals", ja);
+        return jo;
+    }
+
+    public int getRepartitionLength(List<Situated> robots, List<List<Goal>> repartition) {
+        int repartitionLength = 0;
+        for (int i = 0; i < robots.size(); i++) {
+            int robotXPos = robots.get(i).getX();
+            int robotYPos = robots.get(i).getY();
+            for (int j = 0; j < repartition.get(i).size(); j++) {
+                repartitionLength += getPath(grid, repartition.get(i).get(j), robotXPos, robotYPos).size();
+                robotXPos = repartition.get(i).get(j).getX();
+                robotYPos = repartition.get(i).get(j).getY();
+            }
+        }
+        return repartitionLength;
+    }
+
+    public void setGoal(Goal goal) {
+        this.goal = goal;
+    }
+
+    public List<Orientation> getPath(Grid grid, Goal goal, int x, int y) {
         List<Orientation> path = new ArrayList<>();
         while (!(goal.getX() == x && goal.getY() == y)) {
             if (goal.getY() - y > 0) {
@@ -139,7 +245,7 @@ public class PacManBotV1 extends Turtlebot {
                 }
             } else if (goal.getY() - y < 0) {
                 if (abs(goal.getY() - y) > abs((goal.getX() - x))) {
-                    path.add(Orientation.right);
+                    path.add(Orientation.left);
                     y--;
 
                 } else {
@@ -193,66 +299,20 @@ public class PacManBotV1 extends Turtlebot {
 
     public void move(int step) {
         String actionr = "move_forward";
-        String result = x + "," + y + "," + orientation + ",";
+        String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y, x) + ",";
+        chooseGoal(grid, goals);
+        System.out.println(name + " : " + this.goal);
         for (int i = 0; i < step; i++) {
-            EmptyCell[] ec = new EmptyCell[4];
-            ec[0] = null;
-            ec[1] = null;
-            ec[2] = null;
-            ec[3] = null;
-            //System.out.println("myRobot (" + columns + "," + rows + "): " + getX() + " " + getY());
             String st = "[";
-            for (Situated s : grid) {
-                //System.out.println("neighbour (" + s.getComponentType() + "): " + s.getX() + " " + s.getY());
-                if (getX() > 0 && s.getX() == getX() - 1 && s.getY() == getY()) {
-                    if (s.getComponentType() == ComponentType.empty) {
-                        ec[2] = (EmptyCell) s;
-                    } else {
-                        ec[2] = null;
-                    }
-                }
-
-                if (getX() < columns - 1 && s.getX() == getX() + 1 && s.getY() == getY()) {
-                    if (s.getComponentType() == ComponentType.empty) {
-                        ec[3] = (EmptyCell) s;
-                    } else {
-                        ec[3] = null;
-                    }
-                }
-
-                if (getY() < rows - 1 && s.getY() == getY() + 1 && s.getX() == getX()) {
-                    if (s.getComponentType() == ComponentType.empty) {
-                        ec[1] = (EmptyCell) s;
-                    } else {
-                        ec[1] = null;
-                    }
-                }
-
-                if (getY() > 0 && s.getY() == getY() - 1 && s.getX() == getX()) {
-                    if (s.getComponentType() == ComponentType.empty) {
-                        ec[0] = (EmptyCell) s;
-                    } else {
-                        ec[0] = null;
-                    }
-                }
-                st += s.getX() + "," + s.getY() + ": " + s.display() + "; ";
-            }
-            st = st.substring(0, st.length() - 2);
-            result += st + ",";
-
-
-            Goal goal = new Goal(10, 10);
+            EmptyCell[] ec = grid.getAdjacentEmptyCell(x, y);
 
             List<Orientation> path = getPath(grid, goal, x, y);
-
-            System.out.println(path);
 
             if (goal.getX() == x && goal.getY() == y)
                 return;
 
-
             if (path.get(0) == Orientation.up) {
-                if (ec[1] != null) {
+                if (ec[3] != null) {
                     if (orientation == Orientation.up)
                         moveForward();
                     else if (orientation == Orientation.down) {
@@ -266,18 +326,10 @@ public class PacManBotV1 extends Turtlebot {
                         actionr = "turn_left";
                     }
                 } else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
+                    path = getPath(grid, goal, x, y);
                 }
             } else if (path.get(0) == Orientation.down) {
-                if (ec[0] != null) {
+                if (ec[2] != null) {
                     if (orientation == Orientation.up) {
                         moveRight(1);
                         actionr = "turn_right";
@@ -291,18 +343,10 @@ public class PacManBotV1 extends Turtlebot {
                         actionr = "turn_right";
                     }
                 } else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
+                    path = getPath(grid, goal, x, y);
                 }
             } else if (path.get(0) == Orientation.left) {
-                if (ec[2] != null) {
+                if (ec[0] != null) {
                     if (orientation == Orientation.up) {
                         moveLeft(1);
                         actionr = "turn_left";
@@ -316,18 +360,10 @@ public class PacManBotV1 extends Turtlebot {
                         actionr = "turn_left";
                     }
                 } else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
+                    path = getPath(grid, goal, x, y);
                 }
             } else if (path.get(0) == Orientation.right) {
-                if (ec[3] != null) {
+                if (ec[1] != null) {
                     if (orientation == Orientation.up) {
                         moveRight(1);
                         actionr = "turn_right";
@@ -340,19 +376,9 @@ public class PacManBotV1 extends Turtlebot {
                     } else
                         moveForward();
                 } else {
-                    //randomOrientation();
-                    double d = Math.random();
-                    if (d < 0.5) {
-                        moveLeft(1);
-                        actionr = "turn_left";
-                    } else {
-                        moveRight(1);
-                        actionr = "turn_right";
-                    }
+                    path = getPath(grid, goal, x, y);
                 }
             }
-            System.out.println(orientation);
-            System.out.println(actionr);
 
         }
         if (debug == 2) {
@@ -405,13 +431,13 @@ public class PacManBotV1 extends Turtlebot {
         int yo = y;
         if (orientation == Orientation.up) {
             x += 1;
-            x = Math.min(x, columns - 1);
+            x = Math.min(x, grid.getColumns() - 1);
         } else if (orientation == Orientation.left) {
             y -= 1;
             y = Math.max(y, 0);
         } else if (orientation == Orientation.right) {
             y += 1;
-            y = Math.min(y, rows - 1);
+            y = Math.min(y, grid.getRows() - 1);
         } else {
             x -= 1;
             x = Math.max(x, 0);
