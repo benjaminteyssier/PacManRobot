@@ -16,12 +16,14 @@ import java.awt.Color;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 
 public class GridManagement implements SimulationComponent {
+
     protected Grid grid;
     private ArrayList<Goal> goals;
     private static final String turtlebotName = "burger_";
@@ -124,13 +126,72 @@ public class GridManagement implements SimulationComponent {
         clientMqtt.publish("inform/grid/obstacles", obst.toJSONString());
     }
 
-    public void init() {
-        for (int i = 0; i < nbObstacles; i++) {
+    public void init(){
+        boolean full = false;
+        int x=-1, y = -1;
+        int l_x=-1,l_y=-1;
+        int i = 0, j=0;
+        int len_mur=0;
+        int [][] matrice_direction= {{0,1},{1,0},{0,-1},{-1,0}};
+        int continue_wall_direction=(int)Math.ceil(Math.min(rows/10,columns/10));
+        Random rnd = new Random(seed);
+        int vs=rnd.nextInt(4);
+        ArrayList<int[]> mur = new ArrayList<int[]>();
+        System.out.println("initialisation obstacle");
+        while((full == false)&(i<nbObstacles)) {
             int[] pos = grid.locate();
-            Obstacle obs = new Obstacle(pos);
-            grid.putSituatedComponent(obs);
+            x=pos[0];y=pos[1];
+            boolean wall_continue=true;
+            i++;
+            len_mur=0;
+            l_x=-1;l_y=-1;
+            while(wall_continue) {
+                //i++;
+                System.out.println(i);
+                System.out.println(x);
+                System.out.println(y);
+                System.out.println("____");
+                for(int k=-1;k<2;k++) {
+                    for(int l=-1;l<2;l++) {
+                        if((x+k>=0 & y+l>=0)&(x+k<columns & y+l<rows)) {
+                            if((grid.getCell(y+l,x+k).getComponentType()==ComponentType.obstacle)&(y+l!=l_y & x+k!=l_x)) {
+                                wall_continue=false;
+                            }
+                        }
+                        else {
+                            if ((x<0 & y<0)||(x>=columns & y>=rows)) {
+                                wall_continue=false;
+                            }
+                        }
+                    }
+                }
+                System.out.println(wall_continue);
+                System.out.println("____");
+                if(wall_continue) {
+                    int[] position= {x,y};
+                    mur.add(position);
+                    Obstacle obs = new Obstacle(position);
+                    //i++;
+                    grid.putSituatedComponent(obs);
+                    j=rnd.nextInt(4+continue_wall_direction);
+                    if(j>=4) {
+                        j=vs;
+                    }
+                    l_x=x;l_y=y;
+                    x+=matrice_direction[j][0];
+                    y+=matrice_direction[j][1];
+                    len_mur++;
+                    vs=j;
+                }
+            }
+            if(len_mur < 3){
+                for(int k=0;k < len_mur;k++) {
+                    grid.removeSituatedComponent(mur.get(k)[0],mur.get(k)[1]);
+                }
+            }
+            mur.clear();
         }
-        if (display == 1) {
+        if(display == 1) {
             createColorGrid(displaywidth, displayheight, displaytitle);
         }
     }
