@@ -14,17 +14,18 @@
 
 %\newpage
 
-\section{Situation et solution proposée}
+\input{section/situationSolution}
 
-\section{Evaluation de notre solution}
+\input{section/evaluationSolution}
 
-\section{Resultat}
+\input{section/resultat}
 
-\section{Choix d'implémentation}
+\input{section/implementation}
 
 \subsection{Test Grid PacMan}
 
 \noindent
+\begin{figure}[!h]
 \begin{tikzpicture}[scale=1.6]
 	\PCGridContour
 	\PCGridContourNum
@@ -41,6 +42,29 @@
 	
 	\PCGridInsideNum
 \end{tikzpicture}
+\caption{Texte de description}
+\label{fig:figureExemple}
+\end{figure}
+
+\noindent
+\begin{figure}[!h]
+\begin{tikzpicture}[scale=1.6]
+	\PCGridContour
+	\PCGridContourNum
+	\PCGridInside
+	\PCGridAxis
+	\PCGridDirection
+	
+	\PCGridUn
+	
+	\PCPacMan{3}{2}{0}
+	\PCGridInsideNum
+\end{tikzpicture}
+\caption{Texte de description}
+\label{fig:autreFigureExemple}
+\end{figure}
+
+Texte d'exemple pour expliquer les Figures \ref{fig:figureExemple} et \ref{fig:autreFigureExemple}, qui sont des grilles.
 
 %\section{Glossaire}
 %\printglossary[type=\acronymtype]

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 21.12.10) (preloaded format=pdflatex 2022.5.6)  13 MAY 2022 15:01
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 21.12.10) (preloaded format=pdflatex 2022.5.6)  13 MAY 2022 15:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1802,10 +1802,20 @@ e/logo_mines.png>]) (main.toc)
 \tf@toc=\write9
 \openout9 = `main.toc'.
 
-
-Overfull \hbox (6.46165pt too wide) in paragraph at lines 27--44
-[] 
+ (section/situationSolution.tex)
+(section/evaluationSolution.tex) (section/resultat.tex)
+(section/implementation.tex)
+Overfull \hbox (6.46165pt too wide) in paragraph at lines 44--45
+[][] 
  []
+
+
+Overfull \hbox (6.46165pt too wide) in paragraph at lines 62--63
+[][] 
+ []
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 AED: lastpage setting LastPage
@@ -1822,8 +1832,17 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.50 \end{document}
+l.74 \end{document}
                     [1]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 13.04448pt, for example:
+(fancyhdr)                \setlength{\headheight}{13.04448pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-1.04448pt}.
+
+[2]
 
 Package glossaries Warning: No \printglossary or \printglossaries found. 
 (Remove \makeglossaries if you don't want any glossaries.) 
@@ -1831,16 +1850,16 @@ This document will not have a glossary.
 
 (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 5E67E38F50525B9A71AA94B5B40A440A;782.
+(rerunfilecheck)             Checksum: 8F8E0E92027405696C468D4ABA2816D0;788.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 47360 strings out of 478659
- 926015 string characters out of 2843077
- 1666417 words of memory out of 3000000
- 64745 multiletter control sequences out of 15000+600000
+ 47398 strings out of 478659
+ 927318 string characters out of 2843077
+ 1685671 words of memory out of 3000000
+ 64766 multiletter control sequences out of 15000+600000
  409939 words of font info for 51 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  96i,12n,120p,1138b,1806s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1853,9 +1872,9 @@ teur/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmss12.pfb><C
 :/Users/Utilisateur/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/c
 m/cmssbx10.pfb><C:/Users/Utilisateur/AppData/Local/Programs/MiKTeX/fonts/type1/
 public/amsfonts/cm/cmssi10.pfb>
-Output written on main.pdf (2 pages, 153655 bytes).
+Output written on main.pdf (3 pages, 165507 bytes).
 PDF statistics:
- 84 PDF objects out of 1000 (max. 8388607)
- 8 named destinations out of 1000 (max. 500000)
+ 92 PDF objects out of 1000 (max. 8388607)
+ 11 named destinations out of 1000 (max. 500000)
  58 words of extra memory for PDF output out of 10000 (max. 10000000)
 
