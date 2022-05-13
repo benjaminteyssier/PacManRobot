@@ -1,4 +1,12 @@
 \boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
 \babel@toc {french}{}\relax 
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {0.1}Test Grid PacMan}{1}{subsection.0.1}%
+\contentsline {section}{\numberline {1}Situation et solution proposée}{1}{section.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2}Evaluation de notre solution}{1}{section.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3}Resultat}{1}{section.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4}Choix d'implémentation}{1}{section.4}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {4.1}Test Grid PacMan}{1}{subsection.4.1}%
