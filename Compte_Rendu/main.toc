@@ -3,9 +3,9 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {1}Situation et solution proposée}{1}{section.1}%
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {2}Evaluation de notre solution}{1}{section.2}%
+\contentsline {section}{\numberline {2}Évaluation de notre solution}{1}{section.2}%
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {3}Resultat}{1}{section.3}%
+\contentsline {section}{\numberline {3}Résultat}{1}{section.3}%
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {4}Choix d'implémentation}{1}{section.4}%
 \defcounter {refsection}{0}\relax 
