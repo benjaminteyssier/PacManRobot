@@ -273,15 +273,15 @@ public class PacManBotV1 extends Turtlebot {
 
         }
         // Transformation du chemin en liste d'orientation
-        while (finDuPath.papa!=null) {
+        while (finDuPath.papa != null) {
             PointP papa = finDuPath.papa;
             int dX = papa.getX() - finDuPath.getX();
             int dY = papa.getY() - finDuPath.getY();
 
             if (dX == 1) {
-                path.push(Orientation.up);
-            } else if (dX == -1) {
                 path.push(Orientation.down);
+            } else if (dX == -1) {
+                path.push(Orientation.up);
             } else if (dY == 1) {
                 path.push(Orientation.left);
             } else {
@@ -387,23 +387,23 @@ public class PacManBotV1 extends Turtlebot {
         String actionr = "move_forward";
         String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y, x) + ",";
         chooseGoal(grid, goals);
-        System.out.println(name + " : " + this.goal);
+        Stack<Orientation> path = getPath(goal, x, y);
         Orientation nextStep = null;
         for (int i = 0; i < step; i++) {
             String st = "[";
             EmptyCell[] ec = grid.getAdjacentEmptyCell(x, y);
 
-            Stack<Orientation> path = getPath(goal, x, y);
+            if (goal.getX() == x && goal.getY() == y){
+                chooseGoal(grid,goals);
+                return;
+            }
 
-            System.out.println(path);
+            System.out.println(name+" : "+path);
 
             nextStep = path.pop();
 
-            if (goal.getX() == x && goal.getY() == y)
-                return;
-
             if (nextStep == Orientation.up) {
-                if (ec[3] != null) {
+                if (ec[3]!=null) {
                     if (orientation == Orientation.up)
                         moveForward();
                     else if (orientation == Orientation.down) {
@@ -420,7 +420,7 @@ public class PacManBotV1 extends Turtlebot {
                     path = getPath(goal, x, y);
                 }
             } else if (nextStep == Orientation.down) {
-                if (ec[2] != null) {
+                if (ec[2]!=null) {
                     if (orientation == Orientation.up) {
                         moveRight(1);
                         actionr = "turn_right";
@@ -437,10 +437,13 @@ public class PacManBotV1 extends Turtlebot {
                     path = getPath(goal, x, y);
                 }
             } else if (nextStep == Orientation.left) {
-                if (ec[0] != null) {
+                if (ec[0]!=null) {
                     if (orientation == Orientation.up) {
+                        System.out.println("Orientation avant rot : " + orientation);
                         moveLeft(1);
                         actionr = "turn_left";
+                        System.out.println("Orientation après rot : " + orientation);
+
                     } else if (orientation == Orientation.down) {
                         moveRight(1);
                         actionr = "turn_right";
@@ -454,7 +457,7 @@ public class PacManBotV1 extends Turtlebot {
                     path = getPath(goal, x, y);
                 }
             } else if (nextStep == Orientation.right) {
-                if (ec[1] != null) {
+                if (ec[1]!=null) {
                     if (orientation == Orientation.up) {
                         moveRight(1);
                         actionr = "turn_right";
@@ -488,11 +491,9 @@ public class PacManBotV1 extends Turtlebot {
         for (int i = 0; i < step; i++) {
             if (orientation == Orientation.up) {
                 orientation = Orientation.left;
-            }
-            if (orientation == Orientation.left) {
+            } else if (orientation == Orientation.left) {
                 orientation = Orientation.down;
-            }
-            if (orientation == Orientation.right) {
+            } else if (orientation == Orientation.right) {
                 orientation = Orientation.up;
             } else {
                 orientation = Orientation.right;
@@ -505,11 +506,9 @@ public class PacManBotV1 extends Turtlebot {
         for (int i = 0; i < step; i++) {
             if (orientation == Orientation.up) {
                 orientation = Orientation.right;
-            }
-            if (orientation == Orientation.left) {
+            } else if (orientation == Orientation.left) {
                 orientation = Orientation.up;
-            }
-            if (orientation == Orientation.right) {
+            } else if (orientation == Orientation.right) {
                 orientation = Orientation.down;
             } else {
                 orientation = Orientation.left;
