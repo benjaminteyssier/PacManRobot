@@ -13,7 +13,12 @@ public class PointP{
     PointP(int x, int y, PointP papa){
         value = new int[]{x, y};
         this.papa = papa;
-        this.g = papa.g+1;
+        if(papa == null) {
+        	this.g = 0;
+        }else {
+        	this.g = papa.g+1;
+        }
+        
     }
     
     public void modG(int g) {
