@@ -225,16 +225,19 @@ public class PacManBotV1 extends Turtlebot {
         this.goal = goal;
     }
 
+    // algorithme de pathfinding par A* - la classe PointP défini une structure d'arbre (chaque point est un noeud ayant un unique antécédent)
     public Stack<Orientation> getPath(Goal goal, int x, int y) {
+    	//initialisation
         Stack<Orientation> path = new Stack<Orientation>();
         List<PointP> ouverts = new ArrayList<>();
         List<PointP> fermes = new ArrayList<>();
-
+        //Point origine
         PointP ei = new PointP(x, y, null);
         ouverts.add(ei);
-
+        //Initialisation du dernier point du chemin 
         PointP finDuPath = new PointP(0, 0, null);
         while (!ouverts.isEmpty()) {
+        	//choix du meilleur noeud à explorer - celui ayant une fonction f = g + h minimale 
             int m = Integer.MAX_VALUE;
             int Im = 0;
             for (int i = 0; i < ouverts.size(); i++) {
@@ -244,29 +247,35 @@ public class PacManBotV1 extends Turtlebot {
                     Im = i;
                 }
             }
+            //Traitement du noeud p
             PointP p = ouverts.get(Im);
             ouverts.remove(Im);
             fermes.add(p);
+            //verification de la condition d'arrêt (C = "le but est atteint")
             if (p.getX() == goal.getX() && p.getY() == goal.getY()) {
                 finDuPath = p;
                 break;
             }
-
+            //Traitement de voisins du noeud p
             List<PointP> Voisins = getVoisins(p);
             for (int i = 0; i < Voisins.size(); i++) {
                 PointP pi = Voisins.get(i);
                 int opi = pi.isIn(ouverts);
                 int fpi = pi.isIn(fermes);
+                //Si le voisin pi est un nouveau noeud jamais atteint
                 if (opi == -1 && fpi == -1) {
                     ouverts.add(pi);
-                } else if (opi != -1) {
+                } // Sinon, si le voisin pi est déjà dans l'ensemble des ouverts et que le chemin pour l'atteindre est plus court
+                else if (opi != -1) {
                     if (ouverts.get(opi).g > pi.g) {
                         ouverts.get(opi).modG(pi.g);
                         ouverts.get(opi).modPapa(p);
                     }
-                } else if (fermes.get(fpi).g > pi.g) {
+                } // Sinon, si le voisin pi est déjà dans l'ensemble des fermes et que le chemin pour l'atteindre est plus court
+                else if (fermes.get(fpi).g > pi.g) {
                     fermes.get(fpi).modG(pi.g);
                     fermes.get(fpi).modPapa(p);
+                    // Il faut alors recalculer la distance des successeurs de pi au point de départ
                     traitementSuccesseur(fermes.get(fpi), fermes);
                 }
             }
@@ -292,7 +301,7 @@ public class PacManBotV1 extends Turtlebot {
         return path;
     }
 
-
+    //fonction permettant d'actualiser la distance au point de départ des successeurs d'un noeud donné
     private void traitementSuccesseur(PointP p, List<PointP> fermes) {
         Queue<PointP> Ouverts = new LinkedList<PointP>();
         Ouverts.add(p);
@@ -307,23 +316,32 @@ public class PacManBotV1 extends Turtlebot {
         }
     }
 
-    //fonction donnant les possibles positions suivantes
+    //fonction donnant les possibles positions suivantes 
+    //cette fonction permet au chemin d'eviter de revenir sur ses pas et d'aller dans un mur
     private List<PointP> getVoisins(PointP p) {
         ArrayList<PointP> voisins = new ArrayList<PointP>();
         int x = p.getX();
         int y = p.getY();
-
+        //Pour le cas de départ, le point considéré n'a pas d'antécédent, on le traite séparément
         if (p.papa == null) {
             if (x - 1 >= 0) {
+            	ComponentType cellType = grid.getCell(x - 1, y).getComponentType();
+            	if(( cellType == ComponentType.empty || cellType == ComponentType.goal || cellType == ComponentType.unknown))
                 voisins.add(new PointP(x - 1, y, p));
             }
             if (y - 1 >= 0) {
+            	ComponentType cellType = grid.getCell(x, y-1).getComponentType();
+            	if(( cellType == ComponentType.empty || cellType == ComponentType.goal || cellType == ComponentType.unknown))
                 voisins.add(new PointP(x, y - 1, p));
             }
             if (x + 1 < grid.getColumns()) {
+            	ComponentType cellType = grid.getCell(x + 1, y).getComponentType();
+            	if(( cellType == ComponentType.empty || cellType == ComponentType.goal || cellType == ComponentType.unknown))
                 voisins.add(new PointP(x + 1, y, p));
             }
             if (y + 1 < grid.getRows()) {
+            	ComponentType cellType = grid.getCell(x, y+1).getComponentType();
+            	if(( cellType == ComponentType.empty || cellType == ComponentType.goal || cellType == ComponentType.unknown))
                 voisins.add(new PointP(x, y + 1, p));
             }
         } else {
@@ -332,21 +350,26 @@ public class PacManBotV1 extends Turtlebot {
             int ypp = p.papa.getY();
 
             if ((x - 1) >= 0) {
-                if (x - 1 != xpp && (grid.getCell(x - 1, y).getComponentType() == ComponentType.empty || grid.getCell(x - 1, y).getComponentType() == ComponentType.goal || grid.getCell(x - 1, y).getComponentType() == ComponentType.unknown))
+            	ComponentType cellType = grid.getCell(x - 1, y).getComponentType();
+                if (x - 1 != xpp && (cellType == ComponentType.empty || cellType == ComponentType.goal || cellType == ComponentType.unknown))
                     voisins.add(new PointP(x - 1, y, p));
             }
 
             if ((x + 1) < grid.getColumns()) {
-                if (x + 1 != xpp && (grid.getCell(x + 1, y).getComponentType() == ComponentType.empty || grid.getCell(x + 1, y).getComponentType() == ComponentType.goal || grid.getCell(x + 1, y).getComponentType() == ComponentType.unknown))
+            	ComponentType cellType = grid.getCell(x + 1, y).getComponentType();
+                if (x + 1 != xpp && (cellType == ComponentType.empty || cellType == ComponentType.goal || cellType == ComponentType.unknown))
                     voisins.add(new PointP(x + 1, y, p));
             }
             if ((y + 1) < grid.getRows()) {
-                if (y + 1 != ypp && (grid.getCell(x, y + 1).getComponentType() == ComponentType.empty || grid.getCell(x, y + 1).getComponentType() == ComponentType.goal || grid.getCell(x, y + 1).getComponentType() == ComponentType.unknown))
+            	ComponentType cellType = grid.getCell(x, y + 1).getComponentType();
+                if (y + 1 != ypp && (cellType == ComponentType.empty || cellType == ComponentType.goal || cellType == ComponentType.unknown))
                     voisins.add(new PointP(x, y + 1, p));
             }
-            if ((y - 1) >= 0)
-                if (y + 1 != ypp && (grid.getCell(x, y - 1).getComponentType() == ComponentType.empty || grid.getCell(x, y - 1).getComponentType() == ComponentType.goal || grid.getCell(x, y - 1).getComponentType() == ComponentType.unknown))
+            if ((y - 1) >= 0) {
+            	ComponentType cellType = grid.getCell(x, y-1).getComponentType();
+                if (y - 1 != ypp && (cellType == ComponentType.empty || cellType == ComponentType.goal || cellType == ComponentType.unknown))
                     voisins.add(new PointP(x, y - 1, p));
+            }
         }
 
         return voisins;
