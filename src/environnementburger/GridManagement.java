@@ -126,65 +126,67 @@ public class GridManagement implements SimulationComponent {
         clientMqtt.publish("inform/grid/obstacles", obst.toJSONString());
     }
 
-    public void init(){
+    public void init() {
         boolean full = false;
-        int x=-1, y = -1;
-        int l_x=-1,l_y=-1;
-        int i = 0, j=0;
-        int len_mur=0;
-        int [][] matrice_direction= {{0,1},{1,0},{0,-1},{-1,0}};
-        int continue_wall_direction=(int)Math.ceil(Math.min(rows/10,columns/10));
+        int x = -1, y = -1;
+        int l_x = -1, l_y = -1;
+        int i = 0, j = 0;
+        int len_mur = 0;
+        int[][] matrice_direction = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+        int continue_wall_direction = (int) Math.ceil(Math.min(rows / 10, columns / 10));
         Random rnd = new Random(seed);
-        int vs=rnd.nextInt(4);
+        int vs = rnd.nextInt(4);
         ArrayList<int[]> mur = new ArrayList<int[]>();
         System.out.println("initialisation obstacle");
-        while((full == false)&(i<nbObstacles)) {
+        while ((full == false) & (i < nbObstacles)) {
             int[] pos = grid.locate();
-            x=pos[0];y=pos[1];
-            boolean wall_continue=true;
+            x = pos[0];
+            y = pos[1];
+            boolean wall_continue = true;
             i++;
-            len_mur=0;
-            l_x=-1;l_y=-1;
-            while(wall_continue) {
-                for(int k=-1;k<2;k++) {
-                    for(int l=-1;l<2;l++) {
-                        if((x+k>=0 & y+l>=0)&(x+k<columns & y+l<rows)) {
-                            if((grid.getCell(y+l,x+k).getComponentType()==ComponentType.obstacle)&(y+l!=l_y & x+k!=l_x)) {
-                                wall_continue=false;
+            len_mur = 0;
+            l_x = -1;
+            l_y = -1;
+            while (wall_continue) {
+                for (int k = -1; k < 2; k++) {
+                    for (int l = -1; l < 2; l++) {
+                        if ((x + k >= 0 & y + l >= 0) & (x + k < columns & y + l < rows)) {
+                            if ((grid.getCell(y + l, x + k).getComponentType() == ComponentType.obstacle) & (y + l != l_y & x + k != l_x)) {
+                                wall_continue = false;
                             }
-                        }
-                        else {
-                            if ((x<0 & y<0)||(x>=columns & y>=rows)) {
-                                wall_continue=false;
+                        } else {
+                            if ((x < 0 & y < 0) || (x >= columns & y >= rows)) {
+                                wall_continue = false;
                             }
                         }
                     }
                 }
-                if(wall_continue) {
-                    int[] position= {x,y};
+                if (wall_continue) {
+                    int[] position = {x, y};
                     mur.add(position);
                     Obstacle obs = new Obstacle(position);
                     //i++;
                     grid.putSituatedComponent(obs);
-                    j=rnd.nextInt(4+continue_wall_direction);
-                    if(j>=4) {
-                        j=vs;
+                    j = rnd.nextInt(4 + continue_wall_direction);
+                    if (j >= 4) {
+                        j = vs;
                     }
-                    l_x=x;l_y=y;
-                    x+=matrice_direction[j][0];
-                    y+=matrice_direction[j][1];
+                    l_x = x;
+                    l_y = y;
+                    x += matrice_direction[j][0];
+                    y += matrice_direction[j][1];
                     len_mur++;
-                    vs=j;
+                    vs = j;
                 }
             }
-            if(len_mur < 3){
-                for(int k=0;k < len_mur;k++) {
-                    grid.removeSituatedComponent(mur.get(k)[0],mur.get(k)[1]);
+            if (len_mur < 3) {
+                for (int k = 0; k < len_mur; k++) {
+                    grid.removeSituatedComponent(mur.get(k)[0], mur.get(k)[1]);
                 }
             }
             mur.clear();
         }
-        if(display == 1) {
+        if (display == 1) {
             createColorGrid(displaywidth, displayheight, displaytitle);
         }
     }
@@ -222,17 +224,17 @@ public class GridManagement implements SimulationComponent {
     }
 
 
-    public JSONObject goalsToJSONObject(ArrayList<Goal> goals){
+    public JSONObject goalsToJSONObject(ArrayList<Goal> goals) {
         JSONObject jo = new JSONObject();
         JSONArray ja = new JSONArray();
 
-        for(Goal goal:goals){
+        for (Goal goal : goals) {
             JSONObject jGoal = new JSONObject();
-            jGoal.put("x",goal.getX());
-            jGoal.put("y",goal.getY());
+            jGoal.put("x", goal.getX());
+            jGoal.put("y", goal.getY());
             ja.add(jGoal);
         }
-        jo.put("goals",ja);
+        jo.put("goals", ja);
         return jo;
     }
 
@@ -269,6 +271,24 @@ public class GridManagement implements SimulationComponent {
                     jo.put("x", s.getX() + "");
                     jo.put("y", s.getY() + "");
                     gt.add(jo);
+                }
+            }
+        }
+        for (int i = 0; i < grid.getColumns(); i++) {
+            for (int j = 0; j < grid.getRows(); j++) {
+                if (i != x || j != y) {
+                    Situated s = grid.getCell(j, i);
+                    //System.out.println("j " + j + " i " + i + " cell " + s);
+                    if (s.getComponentType() == ComponentType.robot) {
+                        JSONObject jo = new JSONObject();
+                        jo.put("type", s.getComponentType() + "");
+                        RobotDescriptor rd = (RobotDescriptor) s;
+                        jo.put("name", rd.getName());
+                        jo.put("id", rd.getId() + "");
+                        jo.put("x", s.getX() + "");
+                        jo.put("y", s.getY() + "");
+                        gt.add(jo);
+                    }
                 }
             }
         }
@@ -349,7 +369,7 @@ public class GridManagement implements SimulationComponent {
             JSONObject jo = gridToJSONObject(xr, yr, fieldr);
             JSONObject joG = goalsToJSONObject(goals);
             clientMqtt.publish(nameR + "/grid/init", jo.toJSONString());
-            clientMqtt.publish(nameR+"/goals/init", joG.toJSONString());
+            clientMqtt.publish(nameR + "/goals/init", joG.toJSONString());
         } else if (topic.contains("robot/grid")) {
             String nameR = (String) content.get("name");
             int fieldr = Integer.parseInt((String) content.get("field"));
