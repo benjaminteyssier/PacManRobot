@@ -146,11 +146,6 @@ public class GridManagement implements SimulationComponent {
             len_mur=0;
             l_x=-1;l_y=-1;
             while(wall_continue) {
-                //i++;
-                System.out.println(i);
-                System.out.println(x);
-                System.out.println(y);
-                System.out.println("____");
                 for(int k=-1;k<2;k++) {
                     for(int l=-1;l<2;l++) {
                         if((x+k>=0 & y+l>=0)&(x+k<columns & y+l<rows)) {
@@ -165,8 +160,6 @@ public class GridManagement implements SimulationComponent {
                         }
                     }
                 }
-                System.out.println(wall_continue);
-                System.out.println("____");
                 if(wall_continue) {
                     int[] position= {x,y};
                     mur.add(position);
