@@ -127,7 +127,8 @@ public class PacManBotV1 extends Turtlebot {
                 goals.add(new Goal(xG, yG));
             }
             chooseGoal(grid, goals);
-            path = getPath(goal, x, y);
+            if (goal != null)
+                path = getPath(goal, x, y);
         } else if (topic.contains("/goal/update")) {
             JSONArray ja = (JSONArray) content.get("goals");
             goals.clear();
@@ -135,7 +136,9 @@ public class PacManBotV1 extends Turtlebot {
                 JSONObject jo = (JSONObject) ja.get(i);
                 int xG = ((Long) jo.get("x")).intValue();
                 int yG = ((Long) jo.get("y")).intValue();
-                goals.add(new Goal(xG, yG));
+                if (xG != this.goal.getX() || yG != this.goal.getY()) {
+                    goals.add(new Goal(xG, yG));
+                }
             }
         }
     }
@@ -157,28 +160,39 @@ public class PacManBotV1 extends Turtlebot {
 
     public void chooseGoal(Grid grid, ArrayList<Goal> goals) {
         List<Situated> robots = grid.get(ComponentType.robot);
-        List<List<Goal>> repartition = new ArrayList<>();
+        List<List<Goal>> repartition = new ArrayList<List<Goal>>();
 
-        int repartitionLength = Integer.MAX_VALUE;
+        if (goals.isEmpty())
+            return;
+
 
         for (int i = 0; i < robots.size(); i++) {
             repartition.add(new ArrayList<>());
-            repartition.get(i).add(goals.get(i));
+            if (i < goals.size())
+                repartition.get(i).add(goals.get(i));
         }
+
+        int repartitionLength = getRepartitionLength(robots, repartition);
 
         int compteurMax = goals.size() * robots.size();
         int compteur = 0;
         while (compteur < compteurMax) {
             for (int i = 0; i < robots.size(); i++) {
-                for (Goal goal : repartition.get(i)) {
-                    for (int j = 0; j < robots.size(); j++) {
-                        repartition.get(j).add(goal);
-                        if (getRepartitionLength(robots, repartition) < repartitionLength) {
-                            repartitionLength = getRepartitionLength(robots, repartition);
-                            repartition.get(i).remove(goal);
-                            compteur = 0;
-                        } else {
-                            repartition.get(j).remove(goal);
+                for (int j = 0; j < repartition.get(i).size(); j++) {
+                    for (int k = 0; k < robots.size(); k++) {
+                        if (i != k) {
+                            if (!repartition.get(i).isEmpty() && !repartition.isEmpty() && i < repartition.size() - 1 && j < repartition.get(i).size()) {
+                                Goal temporaryGoal = repartition.get(i).get(j);
+                                repartition.get(k).add(temporaryGoal);
+                                repartition.get(i).remove(temporaryGoal);
+                                if (getRepartitionLength(robots, repartition) < repartitionLength) {
+                                    repartitionLength = getRepartitionLength(robots, repartition);
+                                    compteur = 0;
+                                } else {
+                                    repartition.get(k).remove(temporaryGoal);
+                                    repartition.get(i).add(temporaryGoal);
+                                }
+                            }
                         }
                     }
                 }
@@ -188,8 +202,10 @@ public class PacManBotV1 extends Turtlebot {
         for (int i = 0; i < robots.size(); i++) {
             Situated robot = robots.get(i);
             if (robot.getX() == this.getX() && robot.getY() == this.getY()) {
-                this.goal = repartition.get(i).get(0);
-                repartition.get(i).remove(0);
+                if (!repartition.get(i).isEmpty()) {
+                    this.goal = repartition.get(i).get(0);
+                    goals.remove(this.goal);
+                }
                 JSONObject joG = goalsToJSONObject(goals);
                 clientMqtt.publish("/goals/update", joG.toJSONString());
             }
@@ -202,10 +218,12 @@ public class PacManBotV1 extends Turtlebot {
         JSONArray ja = new JSONArray();
 
         for (Goal goal : goals) {
-            JSONObject jGoal = new JSONObject();
-            jGoal.put("x", goal.getX());
-            jGoal.put("y", goal.getY());
-            ja.add(jGoal);
+            if (goal != this.goal) {
+                JSONObject jGoal = new JSONObject();
+                jGoal.put("x", goal.getX());
+                jGoal.put("y", goal.getY());
+                ja.add(jGoal);
+            }
         }
         jo.put("goals", ja);
         return jo;
@@ -382,6 +400,8 @@ public class PacManBotV1 extends Turtlebot {
 
     //distance quadratique à l'objectif
     private int h(int x, int y, Goal goal) {
+        if (goal == null)
+            return 0;
         return ((x - goal.getX()) ^ 2 + (y - goal.getY()) ^ 2);
     }
 
@@ -417,108 +437,115 @@ public class PacManBotV1 extends Turtlebot {
         Orientation nextStep = null;
 
 
-        if (path == null) {
-            chooseGoal(grid, goals);
-            path = getPath(goal, x, y);
+        if (goals.isEmpty()) {
+            return;
         }
 
-        System.out.println(goal);
-
+        if (path == null) {
+            chooseGoal(grid, goals);
+            if(goal==null)
+                return;
+            path = getPath(goal, x, y);
+            return;
+        }
 
         for (int i = 0; i < step; i++) {
             String st = "[";
             EmptyCell[] ec = grid.getAdjacentEmptyCell(x, y);
 
             if (goal.getX() == x && goal.getY() == y) {
-                chooseGoal(grid, goals);
-                path = getPath(goal, x, y);
-                System.out.println("Victory !");
+                if (!goals.isEmpty()) {
+                    chooseGoal(grid, goals);
+                    path = getPath(goal, x, y);
+                }
                 return;
             }
-            nextStep = path.pop();
+            if (!path.isEmpty()) {
+                nextStep = path.pop();
 
-            if (nextStep == Orientation.up) {
-                if (ec[3] != null) {
-                    if (orientation == Orientation.up)
-                        moveForward();
-                    else if (orientation == Orientation.down) {
-                        moveRight(1);
-                        path.add(nextStep);
-                        actionr = "turn_right";
-                    } else if (orientation == Orientation.left) {
-                        moveRight(1);
-                        path.add(nextStep);
+                if (nextStep == Orientation.up) {
+                    if (ec[3] != null) {
+                        if (orientation == Orientation.up)
+                            moveForward();
+                        else if (orientation == Orientation.down) {
+                            moveRight(1);
+                            path.add(nextStep);
+                            actionr = "turn_right";
+                        } else if (orientation == Orientation.left) {
+                            moveRight(1);
+                            path.add(nextStep);
 
-                        actionr = "turn_right";
+                            actionr = "turn_right";
+                        } else {
+                            moveLeft(1);
+                            path.add(nextStep);
+
+                            actionr = "turn_left";
+                        }
                     } else {
-                        moveLeft(1);
-                        path.add(nextStep);
-
-                        actionr = "turn_left";
+                        path = getPath(goal, x, y);
                     }
-                } else {
-                    path = getPath(goal, x, y);
-                }
-            } else if (nextStep == Orientation.down) {
-                if (ec[2] != null) {
-                    if (orientation == Orientation.up) {
-                        moveRight(1);
-                        path.add(nextStep);
+                } else if (nextStep == Orientation.down) {
+                    if (ec[2] != null) {
+                        if (orientation == Orientation.up) {
+                            moveRight(1);
+                            path.add(nextStep);
 
-                        actionr = "turn_right";
-                    } else if (orientation == Orientation.down)
-                        moveForward();
-                    else if (orientation == Orientation.left) {
-                        moveLeft(1);
-                        path.add(nextStep);
+                            actionr = "turn_right";
+                        } else if (orientation == Orientation.down)
+                            moveForward();
+                        else if (orientation == Orientation.left) {
+                            moveLeft(1);
+                            path.add(nextStep);
 
-                        actionr = "turn_left";
+                            actionr = "turn_left";
+                        } else {
+                            moveRight(1);
+                            path.add(nextStep);
+                            actionr = "turn_right";
+                        }
                     } else {
-                        moveRight(1);
-                        path.add(nextStep);
-                        actionr = "turn_right";
+                        path = getPath(goal, x, y);
                     }
-                } else {
-                    path = getPath(goal, x, y);
-                }
-            } else if (nextStep == Orientation.left) {
-                if (ec[0] != null) {
-                    if (orientation == Orientation.up) {
-                        moveLeft(1);
-                        path.add(nextStep);
-                        actionr = "turn_left";
-                    } else if (orientation == Orientation.down) {
-                        moveRight(1);
-                        path.add(nextStep);
-                        actionr = "turn_right";
-                    } else if (orientation == Orientation.left)
-                        moveForward();
-                    else {
-                        moveLeft(1);
-                        path.add(nextStep);
-                        actionr = "turn_left";
+                } else if (nextStep == Orientation.left) {
+                    if (ec[0] != null) {
+                        if (orientation == Orientation.up) {
+                            moveLeft(1);
+                            path.add(nextStep);
+                            actionr = "turn_left";
+                        } else if (orientation == Orientation.down) {
+                            moveRight(1);
+                            path.add(nextStep);
+                            actionr = "turn_right";
+                        } else if (orientation == Orientation.left)
+                            moveForward();
+                        else {
+                            moveLeft(1);
+                            path.add(nextStep);
+                            actionr = "turn_left";
+                        }
+                    } else {
+                        path = getPath(goal, x, y);
                     }
-                } else {
-                    path = getPath(goal, x, y);
-                }
-            } else if (nextStep == Orientation.right) {
-                if (ec[1] != null) {
-                    if (orientation == Orientation.up) {
-                        moveRight(1);
-                        path.add(nextStep);
-                        actionr = "turn_right";
-                    } else if (orientation == Orientation.down) {
-                        moveLeft(1);
-                        path.add(nextStep);
-                        actionr = "turn_left";
-                    } else if (orientation == Orientation.left) {
-                        moveRight(1);
-                        path.add(nextStep);
-                        actionr = "turn_right";
-                    } else
-                        moveForward();
-                } else {
-                    path = getPath(goal, x, y);
+                } else if (nextStep == Orientation.right) {
+                    if (ec[1] != null) {
+                        if (orientation == Orientation.up) {
+                            moveRight(1);
+                            path.add(nextStep);
+                            actionr = "turn_right";
+                        } else if (orientation == Orientation.down) {
+                            moveLeft(1);
+                            path.add(nextStep);
+                            actionr = "turn_left";
+                        } else if (orientation == Orientation.left) {
+                            moveRight(1);
+                            path.add(nextStep);
+                            actionr = "turn_right";
+                        } else
+                            moveForward();
+                    } else {
+                        path = getPath(goal, x, y);
+                    }
                 }
             }
         }
@@ -587,7 +614,7 @@ public class PacManBotV1 extends Turtlebot {
         robotj.put("y", "" + y);
         robotj.put("xo", "" + xo);
         robotj.put("yo", "" + yo);
-        System.out.println("MOVE MOVE " + xo + " " + yo + " --> " + x + " " + y);
+        //System.out.println("MOVE MOVE " + xo + " " + yo + " --> " + x + " " + y);
         clientMqtt.publish("robot/nextPosition", robotj.toJSONString());
     }
 
