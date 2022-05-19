@@ -26,7 +26,9 @@ public class TurtlebotFactory implements SimulationComponent {
 	protected String sttime;
 
 	protected List<Integer> goalsReached;
-	
+
+	protected int currentStep;
+
 	public TurtlebotFactory(String sttime) {
 		this.simulation = 0;
 		this.debug = 0;
@@ -35,6 +37,7 @@ public class TurtlebotFactory implements SimulationComponent {
 		this.sttime = sttime;
 		mesRobots = new HashMap<String, Turtlebot>();
 		goalsReached = new ArrayList<Integer>();
+		this.currentStep = 0;
 	}
 
 	public void setMessage(Message mqtt) {
@@ -73,6 +76,7 @@ public class TurtlebotFactory implements SimulationComponent {
 			}
 			if(goalsReached.size()==mesRobots.size()*2){
 				System.out.println("All goal reached !");
+				System.out.println("Number of steps needed : "+currentStep);
 				System.exit(0);
 			}
 		}
@@ -87,7 +91,7 @@ public class TurtlebotFactory implements SimulationComponent {
 	}
 
 	public void schedule(int nbStep) {
-		for(int i = 0; i < nbStep; i++){
+		for(currentStep = 0; currentStep < nbStep; currentStep++){
 			for(Turtlebot t: mesRobots.values()) {
 				updateGrid(t);
 				moveRobot(t);
