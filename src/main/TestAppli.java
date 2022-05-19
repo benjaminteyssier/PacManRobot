@@ -1,6 +1,7 @@
 package main;
 
 import environnementburger.GridManagement;
+import model.Goal;
 import mqtt.Message;
 import mqtt.Mqtt;
 import mqtt.NoMqtt;
@@ -9,7 +10,9 @@ import org.json.simple.JSONObject;
 import components.TurtlebotFactory;
 import java.io.File;
 import java.time.LocalDateTime;  
-import java.time.format.DateTimeFormatter;  
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestAppli {
 	
@@ -135,6 +138,8 @@ public class TestAppli {
 		mymes = new JSONObject();
 		mymes.put("nbRobot", TestAppli.NBROBOT+"");
 		mqttClient.publish("configuration/nbRobot", mymes.toJSONString());
+		List<Goal> goalsReached = new ArrayList<Goal>();
+		mqttClient.subscribe("goal/reached");
 		tf.initTurtle();
 		env.publishInitRobot();
 		env.publishGridSize();

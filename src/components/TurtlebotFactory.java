@@ -3,12 +3,11 @@ package components;
 import burger.*;
 import mqtt.Message;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import mqtt.Message;
-
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /* This class defines the different operations that the robot can do on the grid */
@@ -25,6 +24,8 @@ public class TurtlebotFactory implements SimulationComponent {
 	protected int seed;
 	protected int field;
 	protected String sttime;
+
+	protected List<Integer> goalsReached;
 	
 	public TurtlebotFactory(String sttime) {
 		this.simulation = 0;
@@ -33,6 +34,7 @@ public class TurtlebotFactory implements SimulationComponent {
 		this.waittime = 0;
 		this.sttime = sttime;
 		mesRobots = new HashMap<String, Turtlebot>();
+		goalsReached = new ArrayList<Integer>();
 	}
 
 	public void setMessage(Message mqtt) {
@@ -60,7 +62,20 @@ public class TurtlebotFactory implements SimulationComponent {
         }
         else if (topic.contains("configuration/waittime")) {
     	    waittime = Integer.parseInt((String)content.get("waittime"));
-        }
+        } else if (topic.contains("goal/reached")) {
+			int goalReachedX = ((Long) content.get("x")).intValue();
+			int goalReachedY = ((Long) content.get("y")).intValue();
+			if(!goalsReached.contains(goalReachedX) || !goalsReached.contains(goalReachedY)){
+				goalsReached.add(goalReachedX);
+				goalsReached.add(goalReachedY);
+				System.out.println("Goal reached : "+goalReachedX+" "+goalReachedY);
+				System.out.println("Goals reached : "+goalsReached.size()/2);
+			}
+			if(goalsReached.size()==mesRobots.size()*2){
+				System.out.println("All goal reached !");
+				System.exit(0);
+			}
+		}
 	}
 
 	public void moveRobot(Turtlebot t) {
@@ -151,6 +166,7 @@ public class TurtlebotFactory implements SimulationComponent {
 		clientMqtt.subscribe("configuration/waittime");
 		clientMqtt.subscribe("configuration/seed");
 		clientMqtt.subscribe("configuration/field");
+		clientMqtt.subscribe("goal/reached");
 	}
 
 	public Turtlebot factory(int id, String name, Message clientMqtt) {

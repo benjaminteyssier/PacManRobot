@@ -431,6 +431,13 @@ public class PacManBotV1 extends Turtlebot {
         }
     }
 
+    public JSONObject goalReachedToJSON(Goal goal){
+        JSONObject jo = new JSONObject();
+        jo.put("x",goal.getX());
+        jo.put("y",goal.getY());
+        return jo;
+    }
+
     public void move(int step) {
         String actionr = "move_forward";
         String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y, x) + ",";
@@ -454,6 +461,8 @@ public class PacManBotV1 extends Turtlebot {
             EmptyCell[] ec = grid.getAdjacentEmptyCell(x, y);
 
             if (goal.getX() == x && goal.getY() == y) {
+                JSONObject jo = goalReachedToJSON(goal);
+                clientMqtt.publish("goal/reached", jo.toJSONString());
                 if (!goals.isEmpty()) {
                     chooseGoal(grid, goals);
                     path = getPath(goal, x, y);
