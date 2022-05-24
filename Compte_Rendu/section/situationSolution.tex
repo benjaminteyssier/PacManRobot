@@ -12,3 +12,13 @@ Nous avons adapté le jeu \Gls{pacman} pour la simulation multi-agents d'un syst
 	\caption{Exemple du jeu}
 	\label{fig:exemple1}
 \end{figure}
+
+Chaque situation va être unique: les murs sont générés procéduralement selon une \textit{seed}. Les seuls paramètres vont être la \textit{seed}, la taille de la grille et le nombre de \Glspl{pacman}, qui sera aussi le nombre de \glspl{fruit}.
+
+Les \Glspl{pacman} ont chacun en mémoire la carte de ce qu'ils ont visités, ils ne se la partagent pas.
+
+\subsection{Solution proposée}
+Chaque \Gls{pacman} va, en fonction de la carte qu'il connaît, calculer le coût de chaque répartition pour en sélectionner la meilleure, et donc son objectif. Pour cela, nous avons implémenté $A^\star$ pour faire le \textit{pathfinding} avec la carte connue.
+Ce calcul étant lourd, il n'est fait qu'à l'initialisation et lorsqu'un \Gls{pacman} atteint un \gls{fruit}.
+
+Ensuite, chaque \gls{pacman} va suivre son chemin jusqu'à ce qu'il rencontre un obstacle, auquel cas il recalculeras seulement route à l'aide du \textit{pathfinding}.
