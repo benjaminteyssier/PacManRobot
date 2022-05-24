@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.max;
 
 public class PacManBotV1 extends Turtlebot {
 
@@ -235,7 +236,7 @@ public class PacManBotV1 extends Turtlebot {
             int robotXPos = robots.get(i).getX();
             int robotYPos = robots.get(i).getY();
             for (int j = 0; j < repartition.get(i).size(); j++) {
-                repartitionLength += getPath(repartition.get(i).get(j), robotXPos, robotYPos).size();
+                repartitionLength = max(repartitionLength,getPath(repartition.get(i).get(j), robotXPos, robotYPos).size());
                 robotXPos = repartition.get(i).get(j).getX();
                 robotYPos = repartition.get(i).get(j).getY();
             }
@@ -608,13 +609,13 @@ public class PacManBotV1 extends Turtlebot {
             x = Math.min(x, grid.getColumns() - 1);
         } else if (orientation == Orientation.left) {
             y -= 1;
-            y = Math.max(y, 0);
+            y = max(y, 0);
         } else if (orientation == Orientation.right) {
             y += 1;
             y = Math.min(y, grid.getRows() - 1);
         } else {
             x -= 1;
-            x = Math.max(x, 0);
+            x = max(x, 0);
         }
         JSONObject robotj = new JSONObject();
         robotj.put("name", name);
