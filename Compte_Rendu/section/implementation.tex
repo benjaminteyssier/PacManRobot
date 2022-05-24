@@ -1,8 +1,38 @@
 \section{Choix d'implémentation}
 
 \subsection{Obtention d'itinéraire}
+Pour que nos robots trouvent un chemin pour accéder à leurs objectifs de manière efficace, nous avons implémenté un algorithme de \textit{pathfinding}.
+
+Comme expliqué plus haut, chaque robot n'a qu'une connaissance partielle de son environnement: il actualise une carte à mesure de ses déplacements. C'est à partir de cette carte que nous établissons un chemin vers l'objectif. 
+
+Le robot calcule son itinéraire à l'aide d'un algorithme $A^\star$. Les positions sur la grilles munies de l'itinéraire pour y parvenir constituent les états du système considéré. 
+Pour un état donné, l’ensemble des états atteignables considérés est l’ensemble des cases voisines inoccupées ou inconnues privé de la « case père ». La case père représente la case précédente, nous l’excluons pour que le robot ne considère pas de chemin incluant un retour sur ses pas.
+
+Pour l'heuristique, nous avons simplement choisi la distance euclidienne.
 
 \subsection{Obtention de la répartition des objectifs}
-Pour obtenir la répartition des objectifs, nous créons un canal mqtt pour que les robots communiquent sur les objectifs qui ne sont pas encore attribués. Ensuite chaque robot prend la liste des robots et des objectifs restants et il calcule la longueur totale de chaque répartition grâce à l'algorithme A^\star$ et choisis l'objectif qui diminue le plus possible la longueur de cette répartition. La longueur de la répartition correspond en fait au maximum de pas qu'un robot a à effectuer avant que tous les objectifs soient remplis Cette implémentation est évidemment non-optimale puisqu'elle ne prend pas en compte la carte connue de chaque robot mais seulement celle du robot qui effectue le calcul.
+Pour obtenir la répartition des objectifs, nous créons un canal mqtt pour que les robots communiquent sur les objectifs qui ne sont pas encore attribués. Ensuite chaque robot prend la liste des robots et des objectifs restants et il calcule la longueur totale de chaque répartition grâce à l'algorithme $A^\star$ et choisis l'objectif qui diminue le plus possible la longueur de cette répartition. La longueur de la répartition correspond en fait au maximum de pas qu'un robot a à effectuer avant que tous les objectifs soient remplis Cette implémentation est évidemment non-optimale puisqu'elle ne prend pas en compte la carte connue de chaque robot mais seulement celle du robot qui effectue le calcul.
 
 \subsection{Création de la carte adaptée}
+L'idée pour créer ce labyrinthe a été de créer les murs un par un. Dans ce contexte, la fonction \textit{locate} du fichier \textit{Grid.java} a été modifié pour renvoyer la position d'un point où les 8 voisins ne sont pas des murs. Le point renvoyé étant pris au hasard dans la grille; pour empêcher un bouclage infinis sur la fonction \textit{locate}, nous avons limité le nombre de points testé aléatoirement à 20. Ceci permet aussi à la création de grille de ne pas boucler indéfiniment si le nombre d'obstacle est trop grand.
+
+Enfin la fonction \textit{init} du fichier \textit{GridManagement.java} à été fortement modifié. En effet, une fois la localisation d'un premier point donnée, nous allons de manière aléatoire l'agrandir dans un sens. De manière à avoir un labyrinthe relativement cohérent, le mur a plus de chance de continuer de s'agrandir dans la même direction que de changer de direction. Cette probabilité dépend de la taille de la grille, pour que les murs aient des tailles cohérente avec celle du labyrinthe. Si le prochain point calculé pour le mur, est voisin d'un mur autre que le mur en cours de création, la création du mur s'arrête et le nouveau point n'est pas ajouté. Nous itérons cette démarche un grand nombre de fois pour avoir la \textit{grid} remplis presque complètement. De même le mur a été programmé pour ne pas toucher deux fois les bords de la carte.
+
+\noindent
+\begin{figure}[!h]
+	\begin{tikzpicture}[scale=1.6]
+		\PCGridContour
+		\PCGridContourNum
+		\PCGridInside
+		\PCGridAxis
+		\PCGridDirection
+	
+		\PCGridUn
+		
+		\PCPacMan{4}{4}{180}
+		
+		\PCGridInsideNum
+	\end{tikzpicture}
+	\caption{Texte de description}
+	\label{fig:figureExemple}
+\end{figure}
