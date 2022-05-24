@@ -1,7 +1,13 @@
 \section{Évaluation de notre solution}
-Pour évaluer la performance de nos robots, le paramètre qui semble le plus pertinent est le nombre de pas de temps nécessaires pour que tous les fruits soient mangés par les pacmans.
+Pour évaluer la performance de nos robots, le paramètre qui semble le plus pertinent est le nombre de pas de temps nécessaires pour que tous les \glspl{fruit} soient mangés par les \glspl{pacman}.
 Ainsi, deux études sont possibles:
--l’influence de la taille du plateau sur le temps nécessaire aux pacmans pour manger tous les fruits
--l’influence du nombre de pacmans sur le temps nécessaire aux pacmans pour manger tous les fruits
-Comme le nombre de fruit est égal au nombre de pacman, le résultat n'est pas complètement analysable car la carte place les objectifs et les pacmans de façon pseudo-aléatoire. Cependant on peut noter que toute solution diminuant le nombre de pas en comparaison au cas où les pacmans n'ont aucune notion de répartition des objectifs est une amélioration du système. Notre indicateur de performance du système pour chaque situation est donc le nombre de pas nécessaires. Si nous souhaitons implémenter de nouvelles méthodes de répartition où de choix des trajectoires, il faudra juger leur performance en fonction de la moyenne du nombre de pas nécessaire dans les différentes configurations de l'environnement (nombre de pac-mans, taille de la carte). L'implémentation de ces différents algorithmes nous ayant déjà demandé un temps de travail très important nous n'avons pas pu réaliser la version basique de choix au hasard ou du choix le plus proche. Cependant, la solution que nous implémentons est obligatoirement plus efficace en terme de nombre de coups puisqu'elle teste toutes les répartitions dont celle qui ressortiraient des méthodes de choix précédentes.
+
+\begin{itemize}
+	\item l’influence de la taille du plateau sur le temps nécessaire aux \glspl{pacman} pour manger tous les \glspl{fruit}
+	\item l’influence du nombre de \glspl{pacman} sur le temps nécessaire aux \glspl{pacman} pour manger tous les \glspl{fruit}
+\end{itemize}
+
+Comme le nombre de \gls{fruit} est égal au nombre de \gls{pacman}, le résultat n'est pas complètement analysable car la carte place les objectifs et les \glspl{pacman} de façon pseudo-aléatoire. Cependant on peut noter que toute solution diminuant le nombre de pas en comparaison au cas où les \glspl{pacman} n'ont aucune notion de répartition des objectifs est une amélioration du système. Notre indicateur de performance du système pour chaque situation est donc le nombre de pas nécessaires. Si nous souhaitons implémenter de nouvelles méthodes de répartition où de choix des trajectoires, il faudra juger leur performance en fonction de la moyenne du nombre de pas nécessaire dans les différentes configurations de l'environnement (nombre de \glspl{pacman}, taille de la carte).
+
+L'implémentation de ces différents algorithmes nous ayant déjà demandé un temps de travail très important nous n'avons pas pu réaliser la version basique de choix au hasard ou du choix le plus proche. Cependant, la solution que nous implémentons est obligatoirement plus efficace en terme de nombre de coups puisqu'elle teste toutes les répartitions dont celle qui ressortiraient des méthodes de choix précédentes.
 
