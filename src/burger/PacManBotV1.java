@@ -86,6 +86,7 @@ public class PacManBotV1 extends Turtlebot {
             }
         } else if (topic.contains(name + "/action")) {
             int stepr = Integer.parseInt((String) content.get("step"));
+            //System.out.println("Goals : " + goals);
             move(stepr);
         } else if (topic.contains("inform/grid/init")) {
             int rows = Integer.parseInt((String) content.get("rows"));
@@ -120,6 +121,7 @@ public class PacManBotV1 extends Turtlebot {
                 grid.forceSituatedComponent(s);
             }
         } else if (topic.contains(name + "/goals/init")) {
+            //System.out.println("Init goals");
             JSONArray ja = (JSONArray) content.get("goals");
             for (int i = 0; i < ja.size(); i++) {
                 JSONObject jo = (JSONObject) ja.get(i);
@@ -205,7 +207,6 @@ public class PacManBotV1 extends Turtlebot {
             if (robot.getX() == this.getX() && robot.getY() == this.getY()) {
                 if (!repartition.get(i).isEmpty()) {
                     this.goal = repartition.get(i).get(0);
-                    goals.remove(this.goal);
                 }
                 JSONObject joG = goalsToJSONObject(goals);
                 clientMqtt.publish("/goals/update", joG.toJSONString());
@@ -443,7 +444,6 @@ public class PacManBotV1 extends Turtlebot {
         String actionr = "move_forward";
         String result = x + "," + y + "," + orientation + "," + grid.getCellsToString(y, x) + ",";
         Orientation nextStep = null;
-
 
         if (goals.isEmpty()) {
             return;
